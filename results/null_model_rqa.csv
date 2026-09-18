@@ -1,0 +1,7 @@
+group,metric,mean_delta,p_value,n
+OCD,RR,-0.0,0.918731,25
+OCD,DET,0.01553,0.271606,25
+Cancer,RR,0.0,0.327287,25
+Cancer,DET,0.071904,0.0,25
+Dep/PTSD,RR,0.0,0.817078,22
+Dep/PTSD,DET,0.060978,0.012836,22

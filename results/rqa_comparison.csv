@@ -1,0 +1,8 @@
+metric,ocd_mean,ocd_std,ctrl_mean,ctrl_std,U,p_value,cohens_d,effect
+Recurrence Rate,0.1883,0.1177,0.1608,0.0879,16415.5,0.104156,0.27,small
+Determinism,0.3362,0.1875,0.3674,0.1472,13097.0,0.053185,-0.188,negligible
+Laminarity (getting stuck),0.5242,0.1776,0.5636,0.1333,13074.0,0.05022,-0.255,small
+Trapping Time,2.7007,0.5608,2.8228,0.4081,12408.0,0.00753,-0.254,small
+Mean Diagonal Length,2.2556,0.5223,2.3499,0.2265,12576.0,0.012686,-0.246,small
+Max Diagonal Length,4.6913,2.6845,6.31,2.743,9164.5,0.0,-0.594,medium
+Recurrence Entropy,0.8388,0.522,1.0128,0.4111,11739.5,0.000699,-0.376,small

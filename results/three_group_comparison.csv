@@ -1,0 +1,19 @@
+comparison,metric,ocd_mean,ctrl_mean,cohens_d,p_value,effect,n_pairs,significant
+OCD vs Cancer,First-Person Agent Ratio,0.1677,0.0919,1.371,0.0,LARGE,65,True
+OCD vs Cancer,Edge Repetition Index,0.065,0.0844,-0.35,0.714718,small,65,False
+OCD vs Cancer,Node Type-Token Ratio,0.283,0.2967,-0.206,0.977712,small,65,False
+OCD vs Cancer,LSCC Fraction,0.157,0.1072,0.508,0.004096,medium,65,True
+OCD vs Cancer,Avg Clustering Coefficient,0.2573,0.2613,-0.114,0.832214,negl.,65,False
+OCD vs Cancer,Graph Density,0.0056,0.0052,0.102,0.444831,negl.,65,False
+OCD vs Cancer,Mean Edge Weight,1.1009,1.1418,-0.482,0.115504,small,65,False
+OCD vs Cancer,TEA Triplets per Word,0.4674,0.4461,0.436,0.026664,small,65,True
+OCD vs Cancer,Unique Nodes per Word,0.2605,0.2599,0.015,0.146288,negl.,65,False
+OCD vs Depression/PTSD,First-Person Agent Ratio,0.1781,0.1987,-0.445,0.003667,small,79,True
+OCD vs Depression/PTSD,Edge Repetition Index,0.0691,0.0686,0.017,0.442172,negl.,79,False
+OCD vs Depression/PTSD,Node Type-Token Ratio,0.3095,0.2999,0.246,0.17558,small,79,False
+OCD vs Depression/PTSD,LSCC Fraction,0.0977,0.1008,-0.041,0.886624,negl.,79,False
+OCD vs Depression/PTSD,Avg Clustering Coefficient,0.243,0.251,-0.16,0.605568,negl.,79,False
+OCD vs Depression/PTSD,Graph Density,0.0074,0.0083,-0.301,0.019155,small,79,True
+OCD vs Depression/PTSD,Mean Edge Weight,1.102,1.1124,-0.155,0.81379,negl.,79,False
+OCD vs Depression/PTSD,TEA Triplets per Word,0.4544,0.4771,-0.214,0.228895,small,79,False
+OCD vs Depression/PTSD,Unique Nodes per Word,0.2788,0.2774,0.069,0.83608,negl.,79,False

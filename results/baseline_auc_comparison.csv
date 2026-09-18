@@ -1,0 +1,7 @@
+comparison,model,auc_mean,auc_std,n,n_features
+OCD vs Cancer,Word Counts Only,0.839,0.061,301,8
+OCD vs Cancer,Multiplex Only,0.954,0.02,301,26
+OCD vs Cancer,Word Counts + Multiplex,0.952,0.024,301,34
+OCD vs Dep/PTSD,Word Counts Only,0.758,0.03,349,8
+OCD vs Dep/PTSD,Multiplex Only,0.845,0.033,349,26
+OCD vs Dep/PTSD,Word Counts + Multiplex,0.833,0.025,349,34

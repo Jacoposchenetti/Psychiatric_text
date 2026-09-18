@@ -1,0 +1,119 @@
+analysis,comparison,metric,cohens_d,p_value,p_adj_bh,sig_original,sig_bh
+TEA,OCD vs Cancer,First-Person Agent Ratio,1.371,0.0,0.0,True,True
+TEA,OCD vs Cancer,Edge Repetition Index,-0.35,0.714718,0.856896,False,False
+TEA,OCD vs Cancer,Node Type-Token Ratio,-0.206,0.977712,0.984444,False,False
+TEA,OCD vs Cancer,LSCC Fraction,0.508,0.004096,0.012393,True,True
+TEA,OCD vs Cancer,Avg Clustering Coefficient,-0.114,0.832214,0.923717,False,False
+TEA,OCD vs Cancer,Graph Density,0.102,0.444831,0.61753,False,False
+TEA,OCD vs Cancer,Mean Edge Weight,-0.482,0.115504,0.213242,False,False
+TEA,OCD vs Cancer,TEA Triplets per Word,0.436,0.026664,0.068399,True,False
+TEA,OCD vs Cancer,Unique Nodes per Word,0.015,0.146288,0.253853,False,False
+TEA,OCD vs Depression/PTSD,First-Person Agent Ratio,-0.445,0.003667,0.011695,True,True
+TEA,OCD vs Depression/PTSD,Edge Repetition Index,0.017,0.442172,0.61753,False,False
+TEA,OCD vs Depression/PTSD,Node Type-Token Ratio,0.246,0.17558,0.296532,False,False
+TEA,OCD vs Depression/PTSD,LSCC Fraction,-0.041,0.886624,0.951106,False,False
+TEA,OCD vs Depression/PTSD,Avg Clustering Coefficient,-0.16,0.605568,0.752179,False,False
+TEA,OCD vs Depression/PTSD,Graph Density,-0.301,0.019155,0.05137,True,False
+TEA,OCD vs Depression/PTSD,Mean Edge Weight,-0.155,0.81379,0.923717,False,False
+TEA,OCD vs Depression/PTSD,TEA Triplets per Word,-0.214,0.228895,0.369149,False,False
+TEA,OCD vs Depression/PTSD,Unique Nodes per Word,0.069,0.83608,0.923717,False,False
+RQA,OCD vs Cancer,Recurrence Rate,1.566,0.0,0.0,True,True
+RQA,OCD vs Cancer,Determinism,1.187,0.0,0.0,True,True
+RQA,OCD vs Cancer,Laminarity (stuck on topic),1.24,0.0,0.0,True,True
+RQA,OCD vs Cancer,Trapping Time,0.876,0.0,0.0,True,True
+RQA,OCD vs Cancer,Mean Diagonal Length,0.632,1.9e-05,0.000132,True,True
+RQA,OCD vs Cancer,Max Diagonal (longest repeat),0.566,0.004812,0.014195,True,True
+RQA,OCD vs Cancer,Recurrence Entropy,0.848,1.4e-05,0.00011,True,True
+RQA,OCD vs Dep/PTSD,Recurrence Rate,-0.528,0.003357,0.011004,True,True
+RQA,OCD vs Dep/PTSD,Determinism,-0.598,0.000321,0.001515,True,True
+RQA,OCD vs Dep/PTSD,Laminarity (stuck on topic),-0.565,0.000426,0.001862,True,True
+RQA,OCD vs Dep/PTSD,Trapping Time,-0.514,0.000759,0.002799,True,True
+RQA,OCD vs Dep/PTSD,Mean Diagonal Length,-0.503,0.000553,0.00225,True,True
+RQA,OCD vs Dep/PTSD,Max Diagonal (longest repeat),-0.389,0.021807,0.057183,True,False
+RQA,OCD vs Dep/PTSD,Recurrence Entropy,-0.617,0.000268,0.001318,True,True
+Multiplex,OCD vs Cancer,Participation Coefficient,-0.365,0.140224,0.246962,False,False
+Multiplex,OCD vs Cancer,Emotional Concentration (HHI),-0.398,0.000464,0.001955,True,True
+Multiplex,OCD vs Cancer,Dominant Emotion Ratio,-0.115,0.108268,0.212927,False,False
+Multiplex,OCD vs Cancer,Layer Dominance: fear,-0.392,0.029949,0.07068,True,False
+Multiplex,OCD vs Cancer,Layer Dominance: anger,0.582,0.00041,0.001861,True,True
+Multiplex,OCD vs Cancer,Layer Dominance: sadness,-0.175,0.175909,0.296532,False,False
+Multiplex,OCD vs Cancer,Layer Dominance: joy,-0.039,0.749502,0.884412,False,False
+Multiplex,OCD vs Cancer,Layer Dominance: trust,-1.058,0.0,0.0,True,True
+Multiplex,OCD vs Cancer,Layer Dominance: disgust,0.154,0.360191,0.524723,False,False
+Multiplex,OCD vs Cancer,Layer Dominance: surprise,0.979,0.0,0.0,True,True
+Multiplex,OCD vs Cancer,Layer Dominance: anticipation,0.424,0.079882,0.171383,False,False
+Multiplex,OCD vs Cancer,First-Person fear,0.954,0.0,0.0,True,True
+Multiplex,OCD vs Cancer,First-Person anger,0.821,7e-06,6.4e-05,True,True
+Multiplex,OCD vs Cancer,First-Person sadness,0.842,5e-06,4.9e-05,True,True
+Multiplex,OCD vs Cancer,First-Person joy,0.851,2e-06,2.1e-05,True,True
+Multiplex,OCD vs Cancer,First-Person trust,0.584,2.2e-05,0.000144,True,True
+Multiplex,OCD vs Cancer,First-Person disgust,0.649,2.5e-05,0.000155,True,True
+Multiplex,OCD vs Cancer,First-Person surprise,0.975,1e-06,1.2e-05,True,True
+Multiplex,OCD vs Cancer,First-Person anticipation,0.801,8.2e-05,0.00044,True,True
+Multiplex,OCD vs Cancer,LSCC Fraction: fear,0.459,0.018795,0.05137,True,False
+Multiplex,OCD vs Cancer,LSCC Fraction: anger,0.374,0.117423,0.213242,False,False
+Multiplex,OCD vs Cancer,LSCC Fraction: sadness,0.324,0.548176,0.707626,False,False
+Multiplex,OCD vs Cancer,LSCC Fraction: joy,0.656,0.002215,0.007468,True,True
+Multiplex,OCD vs Cancer,LSCC Fraction: trust,0.904,1.4e-05,0.00011,True,True
+Multiplex,OCD vs Cancer,LSCC Fraction: disgust,0.377,0.196476,0.322002,False,False
+Multiplex,OCD vs Cancer,LSCC Fraction: surprise,-0.203,0.557705,0.707626,False,False
+Multiplex,OCD vs Cancer,LSCC Fraction: anticipation,0.346,0.001362,0.004727,True,True
+Multiplex,OCD vs Cancer,Coverage: fear,-0.447,0.033152,0.076705,True,False
+Multiplex,OCD vs Cancer,Coverage: anger,0.153,0.117464,0.213242,False,False
+Multiplex,OCD vs Cancer,Coverage: sadness,-0.179,0.654177,0.804093,False,False
+Multiplex,OCD vs Cancer,Coverage: joy,-0.358,0.105676,0.211352,False,False
+Multiplex,OCD vs Cancer,Coverage: trust,-1.284,0.0,0.0,True,True
+Multiplex,OCD vs Cancer,Coverage: disgust,0.012,0.55456,0.707626,False,False
+Multiplex,OCD vs Cancer,Coverage: surprise,0.77,1.5e-05,0.000111,True,True
+Multiplex,OCD vs Cancer,Coverage: anticipation,-0.176,0.507699,0.673129,False,False
+Multiplex,OCD vs Cancer,Corr syntactic-fear,0.35,0.029593,0.07068,True,False
+Multiplex,OCD vs Cancer,Corr syntactic-anger,0.501,0.010859,0.030509,True,True
+Multiplex,OCD vs Cancer,Corr syntactic-sadness,0.285,0.084932,0.178964,False,False
+Multiplex,OCD vs Cancer,Corr syntactic-joy,0.09,0.463009,0.627989,False,False
+Multiplex,OCD vs Cancer,Corr syntactic-trust,-0.01,0.787733,0.920322,False,False
+Multiplex,OCD vs Cancer,Corr syntactic-disgust,-0.025,0.933535,0.983546,False,False
+Multiplex,OCD vs Cancer,Corr syntactic-surprise,0.168,0.415169,0.597438,False,False
+Multiplex,OCD vs Cancer,Corr syntactic-anticipation,0.129,0.96199,0.984444,False,False
+Multiplex,OCD vs Dep/PTSD,Participation Coefficient,-0.146,0.235775,0.370953,False,False
+Multiplex,OCD vs Dep/PTSD,Emotional Concentration (HHI),0.201,0.305662,0.464967,False,False
+Multiplex,OCD vs Dep/PTSD,Dominant Emotion Ratio,0.278,0.130156,0.232703,False,False
+Multiplex,OCD vs Dep/PTSD,Layer Dominance: fear,0.347,0.00952,0.027399,True,True
+Multiplex,OCD vs Dep/PTSD,Layer Dominance: anger,-0.163,0.517721,0.67879,False,False
+Multiplex,OCD vs Dep/PTSD,Layer Dominance: sadness,-0.684,3.3e-05,0.000185,True,True
+Multiplex,OCD vs Dep/PTSD,Layer Dominance: joy,0.063,0.904078,0.961092,False,False
+Multiplex,OCD vs Dep/PTSD,Layer Dominance: trust,0.119,0.845436,0.923717,False,False
+Multiplex,OCD vs Dep/PTSD,Layer Dominance: disgust,-0.194,0.32532,0.485921,False,False
+Multiplex,OCD vs Dep/PTSD,Layer Dominance: surprise,-0.38,0.028876,0.07068,True,False
+Multiplex,OCD vs Dep/PTSD,Layer Dominance: anticipation,0.581,0.000663,0.002524,True,True
+Multiplex,OCD vs Dep/PTSD,First-Person fear,0.261,0.115083,0.213242,False,False
+Multiplex,OCD vs Dep/PTSD,First-Person anger,0.101,0.718921,0.856896,False,False
+Multiplex,OCD vs Dep/PTSD,First-Person sadness,-0.132,0.091192,0.188783,False,False
+Multiplex,OCD vs Dep/PTSD,First-Person joy,0.45,0.001206,0.004312,True,True
+Multiplex,OCD vs Dep/PTSD,First-Person trust,0.439,0.003907,0.012132,True,True
+Multiplex,OCD vs Dep/PTSD,First-Person disgust,0.094,0.839476,0.923717,False,False
+Multiplex,OCD vs Dep/PTSD,First-Person surprise,0.038,0.583855,0.732924,False,False
+Multiplex,OCD vs Dep/PTSD,First-Person anticipation,0.621,9.4e-05,0.000482,True,True
+Multiplex,OCD vs Dep/PTSD,LSCC Fraction: fear,-0.18,0.680912,0.828326,False,False
+Multiplex,OCD vs Dep/PTSD,LSCC Fraction: anger,0.037,0.951941,0.984444,False,False
+Multiplex,OCD vs Dep/PTSD,LSCC Fraction: sadness,-0.023,0.260342,0.404215,False,False
+Multiplex,OCD vs Dep/PTSD,LSCC Fraction: joy,-0.201,0.2315,0.369149,False,False
+Multiplex,OCD vs Dep/PTSD,LSCC Fraction: trust,-0.201,0.352074,0.519309,False,False
+Multiplex,OCD vs Dep/PTSD,LSCC Fraction: disgust,-0.102,0.977372,0.984444,False,False
+Multiplex,OCD vs Dep/PTSD,LSCC Fraction: surprise,-0.192,0.500462,0.671074,False,False
+Multiplex,OCD vs Dep/PTSD,LSCC Fraction: anticipation,-0.064,0.984444,0.984444,False,False
+Multiplex,OCD vs Dep/PTSD,Coverage: fear,0.501,0.000613,0.002411,True,True
+Multiplex,OCD vs Dep/PTSD,Coverage: anger,0.067,0.432398,0.614735,False,False
+Multiplex,OCD vs Dep/PTSD,Coverage: sadness,-0.278,0.114731,0.213242,False,False
+Multiplex,OCD vs Dep/PTSD,Coverage: joy,0.219,0.101517,0.206535,False,False
+Multiplex,OCD vs Dep/PTSD,Coverage: trust,0.318,0.036191,0.080576,True,False
+Multiplex,OCD vs Dep/PTSD,Coverage: disgust,-0.016,0.819166,0.923717,False,False
+Multiplex,OCD vs Dep/PTSD,Coverage: surprise,-0.076,0.816412,0.923717,False,False
+Multiplex,OCD vs Dep/PTSD,Coverage: anticipation,0.711,2.8e-05,0.000165,True,True
+Multiplex,OCD vs Dep/PTSD,Corr syntactic-fear,0.032,0.860796,0.931871,False,False
+Multiplex,OCD vs Dep/PTSD,Corr syntactic-anger,0.093,0.982869,0.984444,False,False
+Multiplex,OCD vs Dep/PTSD,Corr syntactic-sadness,-0.323,0.041722,0.09117,True,False
+Multiplex,OCD vs Dep/PTSD,Corr syntactic-joy,0.168,0.307351,0.464967,False,False
+Multiplex,OCD vs Dep/PTSD,Corr syntactic-trust,0.357,0.027855,0.069934,True,False
+Multiplex,OCD vs Dep/PTSD,Corr syntactic-disgust,-0.322,0.035821,0.080576,True,False
+Multiplex,OCD vs Dep/PTSD,Corr syntactic-surprise,-0.2,0.193298,0.321256,False,False
+Multiplex,OCD vs Dep/PTSD,Corr syntactic-anticipation,0.229,0.456677,0.626603,False,False

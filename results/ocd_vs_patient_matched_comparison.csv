@@ -1,0 +1,10 @@
+metric,ocd_mean,ocd_std,ctrl_mean,ctrl_std,U,p_value,cohens_d,effect_size,significant
+First-Person Agent Ratio,0.1664,0.0453,0.091,0.0655,3378.0,0.0,1.328,LARGE,True
+Edge Repetition Index,0.0661,0.02,0.085,0.076,1933.0,0.803481,-0.338,small,False
+Node Type-Token Ratio,0.2831,0.0454,0.2985,0.0802,1989.0,0.984429,-0.233,small,False
+LSCC Fraction,0.1528,0.1026,0.1028,0.0865,2580.5,0.003666,0.523,medium,True
+Avg Clustering Coefficient,0.2557,0.04,0.2613,0.0299,1895.5,0.665878,-0.157,negligible,False
+Graph Density,0.0058,0.004,0.0053,0.0032,2111.5,0.536846,0.138,negligible,False
+Mean Edge Weight,1.1035,0.0338,1.1422,0.1163,1710.0,0.180645,-0.448,small,False
+TEA Triplets per Word,0.4681,0.0487,0.4446,0.0467,2478.0,0.016153,0.487,small,True
+Unique Nodes per Word,0.2615,0.0257,0.2607,0.055,2264.0,0.17342,0.019,negligible,False

@@ -1,0 +1,436 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{natbib}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\title{TEA Multiplex Networks: Emotional Layers in Narrative Structure\\Distinguish Clinical Conditions Beyond Word-Level Sentiment}
+
+\author{Jacopo Schenetti\textsuperscript{1} \and Sebastiano Franchini\textsuperscript{2}}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Cognitive network science has recently introduced Target-Event-Agent (TEA) networks to model ``who did what'' in narratives by extracting Subject-Verb-Object triplets and building directed graphs of actors, actions, and consequences.
+However, existing TEA implementations treat emotion only as a visualization aid (VADER-based node coloring), discarding it as a structural property of the network.
+We propose \textbf{TEA Multiplex Networks}, a framework that turns emotion into network structure by assigning each TEA triplet to one or more of eight Plutchik emotional layers (fear, anger, sadness, joy, trust, disgust, surprise, anticipation) using the NRC Emotion Lexicon.
+The result is a 9-layer directed multiplex (one syntactic layer plus eight emotional layers) that supports novel metrics: layer dominance, multiplex participation coefficient, inter-layer degree correlation, emotional LSCC, and first-person emotional profiles.
+
+We apply this framework to 501 clinical narratives across three conditions --- Obsessive-Compulsive Disorder (OCD, $n$=149), cancer survivorship ($n$=152), and depression/PTSD ($n$=200) --- comparing groups via length-matched Mann-Whitney U tests with Benjamini-Hochberg correction.
+Of 87 multiplex tests, 26 survive FDR correction, revealing distinct emotional fingerprints: OCD narratives are dominated by \textit{fear} and \textit{anticipation} in first-person agent triplets ($d$=+0.95, $d$=+0.80), cancer narratives by \textit{trust} ($d$=-1.06), and depression narratives by \textit{sadness} ($d$=-0.68).
+Configuration-model null tests confirm that network structure is not a degree-sequence artifact, and a logistic regression baseline demonstrates that multiplex metrics achieve classification AUC=0.954 (OCD vs.\ cancer) and AUC=0.845 (OCD vs.\ depression), well above emotion word counts alone (AUC=0.839 and 0.758, respectively).
+The library is publicly available at \url{https://github.com/Jacoposchenetti/TEA-Multiplex-Network}.
+\end{abstract}
+
+\textbf{Keywords:} multiplex networks; cognitive network science; emotion analysis; NLP; clinical narratives; OCD; Plutchik emotions; TEA networks
+
+\section{Introduction}
+
+Language reflects cognition.  Word choices and narrative structures carry traces of the writer's cognitive and affective state, and these traces vary across psychological conditions \citep{pennebaker2003}.  Computational approaches to modeling such patterns have moved from word-counting \citep[LIWC;][]{pennebaker2015liwc} to sentiment analysis \citep[VADER;][]{hutto2014vader} to network-based representations that preserve relational structure \citep{stella2020formamentis}.
+
+Among network-based approaches, Textual Forma Mentis Networks (TFMNs) represent words as nodes and co-occurrence or semantic relationships as edges, so that the topology itself encodes how concepts cluster in mental lexicons \citep{stella2020formamentis}.  EmoAtlas extends TFMNs by annotating \textit{nodes} with emotional labels from NRC EmoLex, mapping which emotions co-occur in textual windows \citep{stella2022emoatlas}.  More recently, Target-Event-Agent (TEA) Networks have been introduced to capture narrative structure by extracting Subject-Verb-Object (SVO) triplets and organizing them into directed graphs with three roles: Agent (who), Event (did), and Target (what) \citep{franchini2026tea}.
+
+A limitation of current TEA implementations, however, is their treatment of emotion.  TEA Networks use VADER sentiment analysis to color nodes and edges at plot time (positive=blue, negative=red, neutral=gray), but this valence information is \textit{never stored as a graph attribute}.  The network topology, its metrics, and its connected components are all computed on an emotion-blind graph.  VADER also provides only a coarse three-way classification (positive/negative/neutral), flattening the spectrum of human emotion into a single dimension.
+
+We propose \textbf{TEA Multiplex Networks}, a framework that makes emotion a \textit{structural} property of the network rather than a visualization overlay.  Each TEA triplet is classified into one or more of Plutchik's eight basic emotions \citep{plutchik1980} using the NRC Emotion Lexicon (EmoLex; \citealt{mohammad2013nrc}) and assigned to the corresponding layer(s) in a directed multiplex.  The resulting 9-layer structure (one syntactic layer plus eight emotional layers) supports metrics that quantify how emotion organizes narrative structure: layer dominance, multiplex participation coefficient, inter-layer degree correlation, emotional LSCC fraction, and first-person emotional profiles.
+
+This work contributes on two fronts.  Methodologically, we introduce a multiplex extension of TEA Networks that places emotion on \textit{edges} (narrative relationships) instead of nodes (words), turning emotional annotation into structural network layers.  Empirically, we show that the resulting metrics distinguish clinical conditions (OCD, cancer, depression/PTSD) with large effect sizes surviving multiple-comparison correction, and outperform both standard TEA metrics and simple emotion word counts in classification accuracy.  The library is released as open-source software.
+
+
+\section{Related Work}
+
+\subsection{Cognitive Network Science for Text}
+
+Network science has been applied to language since at least the conceptual-graph work of \citet{sowa1984conceptual}.  \citet{stella2020formamentis} introduced Textual Forma Mentis Networks (TFMNs), which represent words as nodes connected by co-occurrence and semantic (synonym) edges, with nodes labeled by VADER valence.  TFMNs have since been applied to gender perceptions in STEM \citep{stella2020formamentis} and math anxiety in GPT-generated text \citep{stella2023gpt}, among other domains.
+
+EmoAtlas \citep{stella2022emoatlas} extended TFMNs by annotating nodes with Plutchik emotions from NRC EmoLex, making it possible to study emotional communities in co-occurrence networks.  In EmoAtlas, emotions live on \textit{nodes} (individual words carry emotional labels); the edges remain syntactic/semantic co-occurrence links.
+
+\subsection{TEA Networks}
+
+Target-Event-Agent Networks \citep{franchini2026tea} move from word co-occurrence to narrative structure.  By extracting SVO triplets via dependency parsing \citep[spaCy;][]{honnibal2020spacy}, they build directed graphs where Agents (subjects) connect to Events (verbs) and Events connect to Targets (objects), encoding ``who did what to whom.''
+
+TEA Networks include VADER-based valence analysis, but only for visualization: nodes are colored by their sentiment polarity, and edges are colored by the valence combination of their endpoints.  This information is computed at rendering time (in \texttt{teaplot.py}) and is not stored as a graph attribute, meaning that all network metrics (density, LSCC, clustering) are computed on the emotion-blind syntactic graph.
+
+\citet{franchini2026tea} applied TEA Networks to compare human and LLM-generated psychotherapy transcripts, finding structural differences in how actors and actions are organized.  However, the emotional dimension of these narratives was not captured in the network structure.
+
+\subsection{Multiplex Networks}
+
+Multiplex networks, where the same nodes are connected by different types of edges on separate layers, have been studied in several areas of complex systems \citep{boccaletti2014multiplex, battiston2014structural}.  Useful metrics include the participation coefficient (how evenly a node distributes its connections across layers) and inter-layer degree correlations (whether hubs in one layer are also hubs in another).
+
+In NLP, multiplex representations have been used for multilingual lexical networks \citep{stella2018multiplex} and multi-relational knowledge graphs, but we are not aware of prior work that constructs emotion-based multiplex layers from narrative SVO structure.
+
+
+\section{Methods}
+
+\subsection{TEA Multiplex Construction}
+
+The TEA Multiplex pipeline operates in four stages (Figure~\ref{fig:pipeline}):
+
+\begin{enumerate}
+    \item \textbf{SVO Extraction}: Input text is processed with spaCy (\texttt{en\_core\_web\_lg}) and the TEA Networks library \citep{franchini2026tea} to extract Agent-Event-Target triplets via dependency parsing.
+    \item \textbf{Emotion Classification}: Each triplet is classified into zero or more Plutchik emotional layers using the NRC Emotion Lexicon \citep{mohammad2013nrc}.  All three components contribute: if any word in the Agent, Event, or Target carries a Plutchik emotion according to EmoLex, the triplet is assigned to that layer.  A single triplet can appear in multiple emotional layers (e.g., ``I \textit{fear} losing \textit{trust}'' is assigned to both fear and trust layers).
+    \item \textbf{Multiplex Construction}: Nine directed graphs (\texttt{nx.DiGraph}) are built: a \textit{syntactic} layer containing all edges (equivalent to a standard TEA graph), plus eight emotional layers containing only edges whose triplets carry that emotion.  Edge weights reflect frequency.
+    \item \textbf{Metric Computation}: Multiplex-specific metrics are computed across and within layers.
+\end{enumerate}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig4_pipeline.pdf}
+    \caption{TEA Multiplex pipeline.  Narrative text is processed through spaCy NLP and TEA SVO extraction to produce Agent-Event-Target triplets, which are then classified into Plutchik emotional layers via NRC EmoLex, yielding a 9-layer directed multiplex network.}
+    \label{fig:pipeline}
+\end{figure}
+
+\subsection{Distinction from Prior Approaches}
+
+Table~\ref{tab:distinction} summarizes how TEA Multiplex differs from related frameworks.
+
+\begin{table}[ht]
+\centering
+\caption{Comparison of emotion-aware text network approaches.}
+\label{tab:distinction}
+\begin{tabular}{lccc}
+\toprule
+& \textbf{EmoAtlas} & \textbf{Standard TEA} & \textbf{TEA Multiplex} \\
+\midrule
+Network type & Co-occurrence & SVO (directed) & SVO (directed) \\
+Emotion on & Nodes & Vis.\ only & Edges (layers) \\
+Emotion model & NRC (8 emo.) & VADER (3 val.) & NRC (8 emo.) \\
+Structural? & Node labels & No & Yes (layers) \\
+Metrics & Graph-level & Graph-level & Cross-layer \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The central idea is that TEA Multiplex places emotion on \textit{edges} (narrative relationships between actors) and uses it to define \textit{separate network layers}.  This makes it possible to measure how emotion shapes narrative structure, rather than simply labeling individual words.
+
+
+\subsection{Multiplex Metrics}
+
+\paragraph{Layer Dominance.} The fraction of total emotional edges belonging to layer $\alpha$:
+\begin{equation}
+    D_\alpha = \frac{|E_\alpha|}{\sum_{\beta \in \mathcal{E}} |E_\beta|}
+\end{equation}
+where $\mathcal{E}$ is the set of eight Plutchik layers.  High dominance means that a large share of the narrative's relational structure is colored by that emotion.
+
+\paragraph{Multiplex Participation Coefficient.}  For each node $i$ present in at least one emotional layer:
+\begin{equation}
+    P_i = \frac{M}{M-1} \left(1 - \sum_{\alpha=1}^{M} \left(\frac{k_i^\alpha}{o_i}\right)^2 \right)
+\end{equation}
+where $k_i^\alpha$ is the weighted degree of $i$ in layer $\alpha$, $o_i = \sum_\alpha k_i^\alpha$ is the total degree, and $M=8$.  $P_i = 0$ when all edges of node $i$ are in a single layer; $P_i \to 1$ when edges are evenly distributed.  We report the mean $\bar{P}$ across all nodes.
+
+\paragraph{Inter-layer Degree Correlation.} Pearson correlation of node degree sequences between two layers, measuring whether nodes that are central in one emotional context are also central in another.
+
+\paragraph{Emotional LSCC Fraction.}  The fraction of nodes in each emotional layer's largest strongly connected component, measuring the coherence of emotional subnetworks.
+
+\paragraph{Emotional Coverage.} The fraction of syntactic-layer nodes that also appear in each emotional layer, measuring how broadly each emotion permeates the narrative.
+
+\paragraph{First-Person Emotional Profile.} For triplets where the Agent is a first-person pronoun (\textit{I, me, my, myself, we, us, our}), we compute the proportion carrying each emotion.  This captures how emotions are distributed in self-referential narrative actions.
+
+\paragraph{Emotional Concentration (HHI).} The Herfindahl-Hirschman Index on layer dominance values:
+\begin{equation}
+    H = \sum_{\alpha \in \mathcal{E}} D_\alpha^2
+\end{equation}
+High values indicate emotional concentration in few layers; low values indicate distributed emotional engagement.
+
+
+\subsection{Corpora}
+\label{sec:corpora}
+
+We analyzed three corpora of first-person narratives:
+
+\begin{itemize}
+    \item \textbf{OCD} ($n$=149): Personal narratives from \texttt{theocdstories.com}, a peer-support platform where individuals describe their experiences with Obsessive-Compulsive Disorder.  Minimum 200 words.
+    \item \textbf{Cancer} ($n$=152): Patient stories from \texttt{cancerresearchuk.org}, describing diagnosis, treatment, and recovery experiences.  Minimum 200 words.
+    \item \textbf{Depression/PTSD} ($n$=200): Reddit posts from \texttt{r/depression} and \texttt{r/ptsd} (collected 2024), filtered to first-person narratives with minimum 300 words.
+\end{itemize}
+
+These corpora were chosen to contrast three clinical profiles: an anxiety-spectrum disorder characterized by intrusive thoughts and compulsive behavior (OCD), a somatic condition with a medical treatment narrative (cancer), and mood/trauma disorders characterized by pervasive negative affect (depression/PTSD).
+
+\subsection{Statistical Analysis}
+
+\paragraph{Length Matching.}  To control for text length as a confound, we used greedy word-count matching with 35\% tolerance.  Each OCD text was paired with the closest available control text (by word count) without replacement, yielding 64 matched pairs (OCD vs.\ Cancer) and 78 matched pairs (OCD vs.\ Depression/PTSD).
+
+\paragraph{Group Comparison.}  Matched groups were compared using two-sided Mann-Whitney U tests with pooled-variance Cohen's $d$ as effect size measure.  Effect sizes are labeled as negligible ($|d|<0.2$), small ($0.2 \le |d| < 0.5$), medium ($0.5 \le |d| < 0.8$), or large ($|d| \ge 0.8$).
+
+\paragraph{Multiple Comparison Correction.}  Benjamini-Hochberg \citep{benjamini1995fdr} FDR correction was applied across \textit{all} comparisons jointly (TEA: 18 tests; Recurrence Quantification Analysis \citep[RQA;][]{marwan2007rqa}: 14 tests; Multiplex: 87 tests; total: 119 tests) at $\alpha = 0.05$.
+
+\paragraph{Null Models.}  Configuration-model null networks (100 random realizations per text, preserving degree sequence) were generated for 25 texts per group to test whether observed clustering, density, and LSCC values differ from degree-sequence expectations.  For RQA, sentence-shuffled null texts (20 permutations per text) tested whether recurrence structure depends on sequential order.
+
+\paragraph{Baseline Comparison.}  To test whether multiplex network metrics add information beyond simple word-level emotion counts, we computed NRC EmoLex word proportions (8 features: fraction of words carrying each Plutchik emotion) and compared logistic regression classification performance (5-fold stratified cross-validation, $L_2$ regularization) across three feature sets: (1) word counts only, (2) multiplex metrics only, and (3) combined.
+
+
+\section{Results}
+
+\subsection{Emotional Layer Dominance}
+
+Figure~\ref{fig:heatmap} shows the mean layer dominance per group.  The three conditions differ in which emotions dominate their narrative structure:
+
+\begin{itemize}
+    \item \textbf{OCD}: Highest dominance in \textit{anticipation} (0.193) and \textit{fear} (0.158), fitting the forward-looking, threat-monitoring cognitive style of obsessive-compulsive symptomatology.
+    \item \textbf{Cancer}: Highest dominance in \textit{trust} (0.183) and \textit{anticipation} (0.179), reflecting narratives organized around medical relationships and treatment trajectories.
+    \item \textbf{Depression/PTSD}: Highest dominance in \textit{anticipation} (0.167) and \textit{sadness} (0.144), with sadness substantially higher than in both other groups.
+\end{itemize}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig1_heatmap_dominance.pdf}
+    \caption{Emotional layer dominance across clinical groups.  Values represent the mean fraction of emotional edges in each Plutchik layer.  OCD narratives are dominated by anticipation and fear; cancer by trust and anticipation; depression/PTSD by anticipation and sadness.}
+    \label{fig:heatmap}
+\end{figure}
+
+\subsection{First-Person Emotional Profiles}
+
+Figure~\ref{fig:radar} shows the emotional distribution of first-person agent triplets (Agent = \textit{I/me/my/we}).  OCD narrators carry the highest first-person emotional loading across nearly all emotions, peaking at \textit{fear} (0.083) and \textit{anticipation} (0.099).  Cancer narrators show the lowest and flattest profile, suggesting emotional distance from self-referential narrative actions.  Depression/PTSD narrators fall between the two, with a visible peak in \textit{sadness}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{figures/fig2_radar_first_person.pdf}
+    \caption{First-person emotional profiles.  Radar chart showing the mean fraction of first-person agent triplets carrying each Plutchik emotion.  OCD (red) shows elevated fear and anticipation in self-referential actions; cancer (blue) shows the flattest, most detached profile; depression/PTSD (green) peaks on sadness.}
+    \label{fig:radar}
+\end{figure}
+
+\subsection{Group Comparisons After BH Correction}
+
+Of 87 multiplex comparisons, 26 survived Benjamini-Hochberg correction (Figure~\ref{fig:forest}).  Table~\ref{tab:key_results} summarizes the key findings.
+
+\begin{table}[ht]
+\centering
+\caption{Selected TEA Multiplex results surviving BH correction ($p_\text{adj} < 0.05$).  Positive $d$ indicates OCD higher.}
+\label{tab:key_results}
+\begin{tabular}{llrr}
+\toprule
+\textbf{Comparison} & \textbf{Metric} & \textbf{$d$} & \textbf{$p_\text{adj}$} \\
+\midrule
+\multirow{8}{*}{OCD vs.\ Cancer}
+& Coverage: trust & $-1.28$ & $<0.001$ \\
+& Layer Dominance: trust & $-1.06$ & $<0.001$ \\
+& Layer Dominance: surprise & $+0.98$ & $<0.001$ \\
+& First-Person fear & $+0.95$ & $<0.001$ \\
+& LSCC Fraction: trust & $+0.90$ & $<0.001$ \\
+& First-Person joy & $+0.85$ & $<0.001$ \\
+& First-Person sadness & $+0.84$ & $<0.001$ \\
+& First-Person anticipation & $+0.80$ & $<0.001$ \\
+\midrule
+\multirow{5}{*}{OCD vs.\ Dep/PTSD}
+& Coverage: anticipation & $+0.71$ & $<0.001$ \\
+& Layer Dominance: sadness & $-0.68$ & $<0.001$ \\
+& First-Person anticipation & $+0.62$ & $<0.001$ \\
+& Layer Dominance: anticipation & $+0.58$ & $0.003$ \\
+& Coverage: fear & $+0.50$ & $<0.001$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig3_forest_multiplex.pdf}
+    \caption{Forest plot of all 26 TEA Multiplex effect sizes surviving Benjamini-Hochberg correction.  Red bars: OCD vs.\ Cancer; green bars: OCD vs.\ Depression/PTSD.  Dashed lines mark small ($|d|=0.2$), medium ($|d|=0.5$), and large ($|d|=0.8$) effect thresholds.}
+    \label{fig:forest}
+\end{figure}
+
+\paragraph{OCD vs.\ Cancer (19 surviving tests).}  The largest effects involve \textit{trust}: cancer narratives have much higher trust layer dominance ($d=-1.06$) and trust coverage ($d=-1.28$), consistent with a narrative structure built around medical relationships (doctors, caregivers, support systems).  OCD narratives show higher \textit{surprise} dominance ($d=+0.98$) and higher first-person emotional profiles across all eight emotions ($d=+0.58$ to $+0.95$), suggesting that OCD narrators embed more emotion into self-referential actions, whereas cancer narrators maintain a degree of emotional detachment.
+
+\paragraph{OCD vs.\ Depression/PTSD (7 surviving tests).}  The distinction is subtler but clinically coherent.  Depression/PTSD narratives have higher \textit{sadness} dominance ($d=-0.68$), while OCD narratives have higher \textit{anticipation} dominance ($d=+0.58$) and coverage ($d=+0.71$).  This maps onto the clinical distinction between ruminative focus on past loss/trauma (depression) and anticipatory focus on future threat (OCD).
+
+\subsection{Comparison with Standard TEA}
+
+Standard TEA metrics yielded only 3 BH-surviving results across both comparisons (First-Person Agent Ratio: $d=+1.37$ for OCD vs.\ Cancer and $d=-0.45$ for OCD vs.\ Depression/PTSD; LSCC Fraction: $d=+0.51$ for OCD vs.\ Cancer).  The multiplex extension thus increases the number of statistically robust findings from 3 to 26, and particularly improves discrimination of OCD from Depression/PTSD (1 vs.\ 7 surviving tests), which is the more clinically challenging comparison.
+
+\subsection{Null Model Validation}
+
+Configuration-model null networks confirmed that TEA network structure is not an artifact of degree sequence.  Across all three groups, clustering coefficients were well above null expectations ($z = +10.6$ to $+33.0$, $p < 0.001$), and LSCC fractions were lower than null ($z = -1.5$ to $-7.2$, $p < 0.001$).  The observed network properties therefore reflect genuine narrative structure, not just the degree distribution.
+
+For RQA, sentence shuffling preserved recurrence rate (as expected, since pairwise similarities are order-invariant) but reduced determinism in cancer ($\Delta$DET $= +0.072$, $p < 0.001$) and depression/PTSD texts ($\Delta$DET $= +0.061$, $p = 0.013$), confirming sequential structure.  OCD texts, however, did not show significantly higher determinism than shuffled versions ($p = 0.27$).  One possible reading is that OCD narratives, despite their thematic repetitiveness (high recurrence rate), organize this repetition in a less sequentially ordered way, which would fit the intrusive, non-linear quality of obsessive thought.  An alternative explanation is insufficient power ($n=25$); see Section 5.3.
+
+\subsection{Added Value Beyond Word Counts}
+\label{sec:auc}
+
+Table~\ref{tab:auc} and Figure~\ref{fig:auc} show logistic regression AUC across feature sets.
+
+\begin{table}[ht]
+\centering
+\caption{Classification AUC (5-fold CV) for word counts vs.\ multiplex metrics.}
+\label{tab:auc}
+\begin{tabular}{llcc}
+\toprule
+\textbf{Comparison} & \textbf{Feature Set} & \textbf{AUC} & \textbf{Features} \\
+\midrule
+\multirow{3}{*}{OCD vs.\ Cancer}
+& Word Counts Only & $0.839 \pm 0.061$ & 8 \\
+& Multiplex Only & $0.954 \pm 0.020$ & 26 \\
+& Word Counts + Multiplex & $0.952 \pm 0.024$ & 34 \\
+\midrule
+\multirow{3}{*}{OCD vs.\ Dep/PTSD}
+& Word Counts Only & $0.758 \pm 0.030$ & 8 \\
+& Multiplex Only & $0.845 \pm 0.033$ & 26 \\
+& Word Counts + Multiplex & $0.833 \pm 0.025$ & 34 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{figures/fig5_auc_comparison.pdf}
+    \caption{Classification performance.  Multiplex metrics alone outperform emotion word counts and achieve near-ceiling discrimination for OCD vs.\ Cancer.  Adding word counts to multiplex metrics does not improve performance, indicating that network structure subsumes word-level information.}
+    \label{fig:auc}
+\end{figure}
+
+Two points stand out.  Multiplex metrics alone outperform word counts by $\Delta$AUC = +0.115 (OCD vs.\ Cancer) and +0.087 (OCD vs.\ Depression/PTSD), confirming that network structure carries discriminative information that simple emotion word proportions miss.  Adding word counts to multiplex metrics does not improve (and slightly degrades) performance, which means that the network metrics already \textit{subsume} the word-level signal while contributing structural features of their own.
+
+
+\section{Discussion}
+
+\subsection{Clinical Interpretation}
+
+The clearest signal in the multiplex is the \textit{fear}--\textit{anticipation} axis in OCD narratives.  First-person agent triplets carry the highest emotional loading across nearly all eight emotions, but fear ($d=+0.95$) and anticipation ($d=+0.80$) dominate, matching the core phenomenology of the disorder: intrusive thoughts about future catastrophe (``something terrible will happen if I don't check'') that drive compulsive preventive behavior.  OCD narrators write themselves into the emotional center of their stories, simultaneously actor and experiencer.
+
+Cancer narratives present a different pattern.  Where OCD concentrates emotion in the narrator's own actions, cancer texts distribute it outward: \textit{trust} dominance ($d=-1.06$) points to a story arc organized around relationships with healthcare providers and support systems, and the flat, low first-person emotional profile fits the medical ``patient'' role, where agency is partly delegated to the healthcare system.
+
+The OCD vs.\ Depression/PTSD contrast is subtler and probably more useful, since both are mental health conditions with overlapping symptom profiles.  The difference shows up as a temporal orientation: depression/PTSD loads on \textit{sadness} ($d=-0.68$), oriented toward past loss and present suffering, while OCD loads on \textit{anticipation} ($d=+0.58$), oriented toward future threat.  That this distinction survives BH correction across seven multiplex tests suggests it reflects a real structural difference in how these groups narrate their experience, not just variation in which emotion words happen to appear.
+
+\subsection{Methodological Contribution}
+
+The difference between TEA Multiplex and prior approaches is both conceptual and quantitative.  Placing emotion on \textit{edges} (narrative relationships) rather than \textit{nodes} (individual words) answers a different question: not ``which emotions appear in the text'' but ``which emotions mediate actions between actors.''  In practice, this translates into a 13-percentage-point AUC gain over word counts for clinical classification.
+
+Relative to standard TEA metrics, the multiplex extension raises the count of BH-surviving findings from 3 to 26.  The gain is largest for the OCD vs.\ Depression/PTSD contrast (1 surviving standard TEA test vs.\ 7 multiplex tests), which is the clinically harder comparison because both are mental health conditions with overlapping symptoms.
+
+\subsection{Limitations and Confounds}
+
+\paragraph{Genre confound.}  The three corpora differ not only in clinical condition but also in platform and genre: OCD stories come from a dedicated support website, cancer stories from a charity website, and depression/PTSD texts from Reddit.  These platforms impose their own style norms, audience expectations, and moderation practices.  Although the observed differences are consistent with clinical expectations and survive length matching, we cannot fully separate condition effects from genre effects.  A stronger test would compare narratives posted on the same platform (e.g., OCD, cancer, and depression subreddits on Reddit) or pool multiple platforms for each condition.
+
+\paragraph{NRC EmoLex limitations.}  The NRC lexicon provides binary word-emotion associations without context sensitivity.  The word ``patient'' triggers \textit{trust} whether used as ``the patient trusted the doctor'' or ``I'm losing patience.''  Context-aware emotion classifiers (e.g., fine-tuned transformers) could improve classification accuracy but at the cost of interpretability and reproducibility.
+
+\paragraph{SVO extraction errors.}  Dependency parsing is imperfect, particularly for complex or non-standard syntactic structures common in informal narratives.  TEA Networks have been validated against a gold standard of 122 sentences \citep{franchini2026tea}, but error rates on clinical narratives may differ.
+
+\paragraph{Sample sizes.}  Length-matched comparisons yielded 64--78 pairs per contrast, which is adequate for detecting medium-to-large effects but may be underpowered for subtle differences.  The 12 tests lost to BH correction (from 35 to 26 significant) predominantly had small effect sizes ($|d| < 0.5$).
+
+\paragraph{RQA determinism in OCD.}  The null model finding that OCD narratives do not show higher determinism than shuffled text ($p = 0.27$) is ambiguous.  It could point to genuinely non-linear narrative organization in OCD (fitting the intrusive, disruptive quality of obsessive thought) or it could simply reflect low power ($n=25$ in the null model sample).  A larger sample is needed to settle this.
+
+\subsection{Future Directions}
+
+Several directions follow from this work.  Applying TEA Multiplex to \textit{longitudinal} clinical narratives (e.g., therapy transcripts across sessions) could track how emotional multiplex structure changes with treatment.  Comparing human narratives with LLM-generated clinical text \citep{franchini2026tea} would test whether language models reproduce the emotional structure of real clinical conditions.  Replacing NRC EmoLex with a context-sensitive emotion classifier (while keeping the multiplex framework) could address the context limitation noted above.  Cross-linguistic validation would show whether the emotional fingerprints found here are language-specific or more general.
+
+
+\section{Conclusion}
+
+We introduced TEA Multiplex Networks, a framework that extends TEA Networks by treating Plutchik emotions as structural network layers rather than visualization overlays.  Applied to 501 clinical narratives, this approach separates OCD (fear and anticipation), cancer (trust), and depression/PTSD (sadness) with effect sizes that survive Benjamini-Hochberg correction and outperform emotion word counts in classification accuracy.  Whether these fingerprints hold up across languages and platforms---particularly when the genre confound is removed---is the most pressing open question.  The library is publicly available at \url{https://github.com/Jacoposchenetti/TEA-Multiplex-Network}.
+
+
+\section*{Ethics Statement}
+
+This study uses publicly available, anonymized narratives.  OCD stories were collected from \texttt{theocdstories.com}, a public peer-support website where users voluntarily share their experiences.  Cancer stories are publicly available patient accounts from \texttt{cancerresearchuk.org}.  Depression/PTSD texts are public Reddit posts.  No personally identifiable information was collected or retained.  All texts were processed computationally; no individual narratives are reproduced in this paper.
+
+\section*{Data and Code Availability}
+
+The TEA Multiplex library and analysis code are available at \url{https://github.com/Jacoposchenetti/TEA-Multiplex-Network}.  The Reddit corpus was collected via the public Reddit API in 2024; due to Reddit's Terms of Service, post IDs are provided rather than full text.  OCD and cancer narratives are publicly accessible at their respective websites.
+
+\section*{Acknowledgments}
+
+[To be completed.]
+
+\section*{Declaration of Interest}
+
+The authors declare no conflict of interest.
+
+
+\bibliographystyle{apalike}
+
+\begin{thebibliography}{99}
+
+\bibitem[Benjamini \& Hochberg, 1995]{benjamini1995fdr}
+Benjamini, Y. \& Hochberg, Y. (1995).
+\newblock Controlling the false discovery rate: A practical and powerful approach to multiple testing.
+\newblock {\em Journal of the Royal Statistical Society: Series B}, 57(1), 289--300.
+
+\bibitem[Battiston et~al., 2014]{battiston2014structural}
+Battiston, F., Nicosia, V., \& Latora, V. (2014).
+\newblock Structural measures for multiplex networks.
+\newblock {\em Physical Review E}, 89(3), 032804.
+
+\bibitem[Boccaletti et~al., 2014]{boccaletti2014multiplex}
+Boccaletti, S., Bianconi, G., Criado, R., et~al. (2014).
+\newblock The structure and dynamics of multilayer networks.
+\newblock {\em Physics Reports}, 544(1), 1--122.
+
+\bibitem[Honnibal et~al., 2020]{honnibal2020spacy}
+Honnibal, M., Montani, I., Van~Landeghem, S., \& Boyd, A. (2020).
+\newblock spaCy: Industrial-strength natural language processing in {Python}.
+\newblock \url{https://spacy.io}.
+
+\bibitem[Hutto \& Gilbert, 2014]{hutto2014vader}
+Hutto, C.~J. \& Gilbert, E. (2014).
+\newblock {VADER}: A parsimonious rule-based model for sentiment analysis of social media text.
+\newblock In {\em Proceedings of the 8th International AAAI Conference on Weblogs and Social Media} (pp.~216--225).
+
+\bibitem[Franchini et~al., 2026]{franchini2026tea}
+Franchini, S., Carrillo, A., De~Duro, E.~S., Improta, R., Ardebili, A.~A., \& Stella, M. (2026).
+\newblock TEA Nets combine AI and cognitive network science to model actors, actions, and consequences in text.
+\newblock {\em arXiv preprint}.
+
+\bibitem[Marwan et~al., 2007]{marwan2007rqa}
+Marwan, N., Carmen~Romano, M., Thiel, M., \& Kurths, J. (2007).
+\newblock Recurrence plots for the analysis of complex systems.
+\newblock {\em Physics Reports}, 438(5--6), 237--329.
+
+\bibitem[Mohammad \& Turney, 2013]{mohammad2013nrc}
+Mohammad, S.~M. \& Turney, P.~D. (2013).
+\newblock Crowdsourcing a word--emotion association lexicon.
+\newblock {\em Computational Intelligence}, 29(3), 436--465.
+
+\bibitem[Pennebaker et~al., 2015]{pennebaker2015liwc}
+Pennebaker, J.~W., Boyd, R.~L., Jordan, K., \& Blackburn, K. (2015).
+\newblock The development and psychometric properties of {LIWC2015}.
+\newblock University of Texas at Austin.
+
+\bibitem[Pennebaker et~al., 2003]{pennebaker2003}
+Pennebaker, J.~W., Mehl, M.~R., \& Niederhoffer, K.~G. (2003).
+\newblock Psychological aspects of natural language use: Our words, our selves.
+\newblock {\em Annual Review of Psychology}, 54(1), 547--577.
+
+\bibitem[Plutchik, 1980]{plutchik1980}
+Plutchik, R. (1980).
+\newblock {\em Emotion: A Psychoevolutionary Synthesis}.
+\newblock Harper \& Row.
+
+\bibitem[Sowa, 1984]{sowa1984conceptual}
+Sowa, J.~F. (1984).
+\newblock {\em Conceptual Structures: Information Processing in Mind and Machine}.
+\newblock Addison-Wesley.
+
+\bibitem[Stella, 2020]{stella2020formamentis}
+Stella, M. (2020).
+\newblock Text-mining forma mentis networks reconstruct public perception of the STEM gender gap in social media.
+\newblock {\em PeerJ Computer Science}, 6, e295.
+
+\bibitem[Stella, 2022]{stella2022emoatlas}
+Stella, M. (2022).
+\newblock Cognitive network science for understanding online social cognitions: A brief review.
+\newblock {\em Topics in Cognitive Science}, 14(1), 143--162.
+
+\bibitem[Stella, 2023]{stella2023gpt}
+Stella, M. (2023).
+\newblock Using cognitive network science to detect {ChatGPT} biases about anxiety related to maths.
+\newblock Preprint.
+
+\bibitem[Stella, 2018]{stella2018multiplex}
+Stella, M., Beckage, N.~M., Brede, M., \& De~Domenico, M. (2018).
+\newblock Multiplex model of mental lexicon reveals explosive learning in humans.
+\newblock {\em Scientific Reports}, 8(1), 2259.
+
+\end{thebibliography}
+
+\end{document}

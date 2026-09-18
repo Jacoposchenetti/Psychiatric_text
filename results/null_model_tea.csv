@@ -1,0 +1,10 @@
+group,metric,mean_z,p_value,n,differs_from_null
+OCD,density,5.477,0.0,25,True
+OCD,clustering,22.066,0.0,25,True
+OCD,lscc_frac,-3.415,2e-06,25,True
+Cancer,density,8.813,0.0,25,True
+Cancer,clustering,33.049,0.0,25,True
+Cancer,lscc_frac,-7.181,0.0,25,True
+Dep/PTSD,density,3.677,0.0,25,True
+Dep/PTSD,clustering,10.648,0.0,25,True
+Dep/PTSD,lscc_frac,-1.483,1e-06,25,True

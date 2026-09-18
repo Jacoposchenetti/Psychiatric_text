@@ -1,0 +1,25 @@
+# Raw text corpora (too large / not redistributable)
+texts/
+control_mental_health/texts/
+control_patient_stories/texts/
+control_gutenberg/texts/
+control_moth/texts/
+
+# Large intermediate files
+*.zip
+*.docx
+__pycache__/
+*.pyc
+
+# Network files (large, reproducible from scripts)
+**/*.graphml
+results/networks/
+control_*/results/networks/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Figures source directory (large PNGs, reproducible)
+# Keep arxiv/figures/ (compressed for submission)
+figures/
