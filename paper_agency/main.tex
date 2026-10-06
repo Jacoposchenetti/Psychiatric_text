@@ -65,6 +65,8 @@ Word counts cannot address the third question, and it gave the clearest results.
 % =====================================================================
 \section{Methods}
 
+The analysis has four parts, and each subsection below opens with a short description of what it measures before giving the technical details. First, every post was turned into a map of who does what to whom (Section~\ref{sec:tea}). Second, we described the overall shape of these maps and how much each post keeps returning to the same content (Sections~\ref{sec:structure} and~\ref{sec:rqa}). Third, we looked at which words fill the maps and tested whether a computer can tell the communities apart from them (Section~\ref{sec:content}). Fourth, and most important, we measured how often different kinds of entities (the narrator, other people, thoughts, medication) are cast as the one acting rather than the one acted upon (Sections~\ref{sec:coding} and~\ref{sec:agentivity}).
+
 \subsection{Data}
 
 Posts came from a public collection of Reddit mental health posts hosted on Hugging Face \citep{solomonk_dataset}, which contains submissions to r/OCD, r/depression, r/ptsd, r/ADHD and r/aspergers. We used the first four. For each post we removed URLs, Markdown, HTML entities, edit notes and ``tl;dr'' lines, and prepended the title to the body. We discarded removed or deleted posts and exact duplicates, kept posts with at least 300 words after cleaning, and excluded 200 posts that had been used in an earlier pilot analysis. All 10,890 eligible posts were analysed rather than a sample. Of these, 10,713 had a TEA network and at least ten sentences and form the analytic sample (Table~\ref{tab:data}).
@@ -90,7 +92,9 @@ Total        & 10,713 & 8,921 & 541 & 352 & 434 \\
 \end{tabular}
 \end{table}
 
-\subsection{TEA network extraction}
+\subsection{TEA network extraction}\label{sec:tea}
+
+A TEA network is a map of who does what to whom in a text. A parser, a program trained to recognise the grammatical structure of sentences, finds each verb together with its subject and its object. The subject becomes the Agent (the one acting), the verb the Event, and the object the Target (the one acted upon). ``He yelled at me'' becomes \textit{he} $\to$ \textit{yell} $\to$ \textit{me}. Collected over a whole post, these links form a network whose nodes are the people, things and ideas in the story.
 
 Each post was parsed with spaCy's \texttt{en\_core\_web\_lg} model \citep{honnibal2020spacy} and passed to the \texttt{extract\_svos} function of the TEA\_Networks library \citep{franchini2026tea}. For every verb, the function collects its subjects, the verb phrase and its objects, and emits Agent$\to$Event and Event$\to$Target links. Passives with an explicit by-phrase are resolved semantically: in ``I was hit by him'', ``him'' is the Agent and ``I'' the Target. Passives without a by-phrase (``I was assaulted'') leave the grammatical subject in the Agent slot as an approximation and flag the link with \texttt{passive\_approx = 1}. Figure~\ref{fig:example} shows the output for a set of constructed sentences.
 
@@ -103,23 +107,31 @@ For the analyses of content and agency we reduced every node to its head word, t
 \label{fig:example}
 \end{figure}
 
-\subsection{Network structure}
+\subsection{Network structure}\label{sec:structure}
+
+Structural metrics describe the shape of a post's network without looking at which words it contains. Some have a direct psychological reading. The first-person agent ratio is the share of actions whose doer is ``I'' or ``we''. The node type-token ratio and the number of unique nodes per word say how varied the entities in a story are, so low values mean that the writer keeps returning to the same few people or things. The largest strongly connected component and the clustering coefficient say how far the entities are woven into a single web of mutual relations rather than appearing in separate episodes.
 
 To answer the first question we computed nine structural metrics on each TEA network: first-person agent ratio, size of the largest strongly connected component, triplets per word, density, average clustering, node type-token ratio, share of repeated edges, mean edge weight and unique nodes per word. Because these metrics depend on text length, each was regressed on log word count across the full sample and the residuals were analysed. We compared the four communities with Kruskal-Wallis tests, reported $\varepsilon^2$ as the effect size, and contrasted each community with the other three using Hedges' $g$ \citep{hedges1981}.
 
 \subsection{Thematic concentration}\label{sec:rqa}
 
+This analysis asks whether a writer keeps coming back to the same content. Each sentence was converted by a language model into a list of numbers (an embedding) such that sentences with similar meaning receive similar lists, whatever words they use: ``I can't stop checking the stove'' and ``I keep going back to make sure the gas is off'' have a similarity of 0.57 on a scale up to 1, while the first of them and ``My sister came to visit last weekend'' have 0.14. We then drew, for every post, a grid with the sentences along both sides and marked each pair of sentences whose meanings are close. The recurrence rate is the share of marked pairs, that is, how much of the post repeats content found elsewhere in it. Determinism is the share of marked pairs that fall in diagonal runs, which happens when a stretch of several consecutive sentences echoes an earlier stretch. Laminarity is the share that falls in vertical runs, which happens when several consecutive sentences all stay close to the same single sentence, that is, when the writer dwells on one point.
+
 To measure how far a post keeps returning to the same content, we applied recurrence quantification analysis to the sequence of its sentences \citep{marwan2007}. Sentences were segmented with spaCy's statistical sentence segmenter, and sentences shorter than three words were dropped; 10,340 posts kept at least ten sentences (median 22). Each sentence was embedded with the sentence-transformer all-MiniLM-L6-v2 \citep{reimers2019}, and the whole analysis was repeated with all-mpnet-base-v2 as a check. We chose models trained for semantic similarity over averaged word vectors, whose similarities are driven largely by function words and pronouns and therefore track style as much as content.
 
 Two sentences counted as recurrent when the cosine similarity of their embeddings exceeded a threshold. In the main analysis the threshold was global, set so that the recurrence rate pooled over 500 random posts was 10\% (0.384 for MiniLM, 0.400 for mpnet), and we repeated it with thresholds giving 5\% and 15\%. From each recurrence matrix we derived the recurrence rate, determinism, laminarity, trapping time, mean and maximum diagonal line length, and the entropy of diagonal line lengths. With a global threshold the recurrence rate varies between posts, and the other measures partly follow it. We therefore also used a per-post threshold that fixed each post's recurrence rate at 10\%. This separates the sequential structure of recurrence, whether similar sentences come in runs, from how similar a post's sentences are overall. Metrics were regressed on the log number of sentences and analysed with the same tests as the network metrics, with the false discovery rate controlled across all recurrence tests.
 
-\subsection{Content signatures and classification}
+\subsection{Content signatures and classification}\label{sec:content}
+
+Here we asked two things: which words are typical of each community, and whether a computer can tell which community a post comes from. The second question is a way of measuring information. If a statistical model can guess the community from some description of the posts, that description captures something that differs between communities; if it guesses no better than chance, it does not. Accuracy is the share of posts assigned to the right community, which would be 25\% by chance with four communities. The AUC is the probability that the model rates a post from a given community as more likely to belong there than a post from elsewhere, from .50 (chance) to 1 (perfect). Each model was tested on posts it had not seen during training (cross-validation), so that it could not succeed by memorising the data.
 
 To describe what distinguishes the communities, we counted for each community the number of posts in which a head word appeared in a given role and compared these counts with the other three communities using weighted log-odds ratios with an informative Dirichlet prior \citep{monroe2008}. Counting posts rather than tokens prevents a single long post from dominating a term. Only words occurring in at least 30 posts were considered.
 
 To test whether roles add information, we trained multinomial logistic regression classifiers on TF-IDF features under five-fold stratified cross-validation, using a balanced subsample of 1,865 posts per community (the size of the smallest community) and the same folds for every feature set. The feature sets were: the raw words of the post; TEA head words without role labels; the same head words labelled by role (e.g. \texttt{A\_thought} versus \texttt{T\_thought}); each role on its own; and raw words plus role-labelled heads. Paired predictions were compared with exact McNemar tests. Two further classifiers used the nine residualised network metrics and the seven recurrence metrics of Section~\ref{sec:rqa} with the log number of sentences.
 
-\subsection{Coding agency}
+\subsection{Coding agency}\label{sec:coding}
+
+To compare agency between communities we first had to know what kind of entity occupies each position: the narrator, another person, a thought, a medication, a span of time. Every word in an Agent or Target position was therefore sorted into a category using two fixed lists that were chosen before looking at the results. Pronouns were sorted by grammar (\textit{I}, \textit{he/she}, \textit{they}, and so on). All other words were sorted with WordNet, a large reference dictionary that files English nouns under 26 broad headings such as persons, feelings, cognition (thoughts, memories, ideas), artifacts (objects made by people, including medication), the body and time.
 
 For the agency analysis we kept only the slots attached directly to an event: the head of each Agent in an Agent$\to$Event link and the head of each Target in an Event$\to$Target link. Links between two agents or two targets (coordination and modifier chains) were excluded. This gave 2,021,601 slots, 959,884 agents and 1,061,717 targets, with a median of 152 slots per post.
 
@@ -127,7 +139,9 @@ Each head word was assigned to one category by a fixed procedure. Pronouns were 
 
 Agentless passives were then handled explicitly. In the main analysis the subject of every link flagged \texttt{passive\_approx} was moved from the Agent to the Target role, so that ``I was assaulted'' counts the narrator as affected, not as acting. Results without this correction are reported for comparison.
 
-\subsection{Agentivity given mention}
+\subsection{Agentivity given mention}\label{sec:agentivity}
+
+The central measure is simple. For each kind of entity we asked: when it appears in a sentence, how often is it the one acting rather than the one acted upon? We call this its agentivity. A community could mention the narrator very often and still rarely make the narrator act, so how often something is mentioned and how often it acts are kept separate. The comparison is expressed as an odds ratio. An odds ratio of 1 means that, in a given community, an entity acts as often as one would expect from how agentive that entity is elsewhere and how agentive that community's writing is overall. Values above 1 mean it acts more often than expected, values below 1 less often. An odds ratio of 0.62, for example, means that the odds of the entity being the actor are 38\% lower than expected.
 
 For a category $c$ in a post, agentivity is the share of its slots that are Agent slots. The question of interest is whether agentivity for a category is higher or lower in one community than in the others after accounting for how agentive each community is overall. For every pair of category $c$ and community $k$ we fitted a binomial generalised linear model on slot counts aggregated by post:
 \begin{equation}
@@ -137,7 +151,13 @@ where $\mathrm{cat}_c$ marks the slots of category $c$ and $\mathrm{com}_k$ mark
 
 \subsection{Robustness checks}\label{sec:robust}
 
+These checks ask whether the agency results could be produced by particular choices in the analysis rather than by the posts themselves: how passive sentences are treated, the fact that some people wrote several posts, and chance variation within the sample.
+
 We repeated the agentivity models (a) without the passive correction, (b) with standard errors clustered by post, (c) on a sample with one randomly chosen post per author (9,353 posts), and (d) separately in two random halves of the posts, reporting the correlation of the log odds ratios across halves.
+
+\subsection{Reading the statistics}
+
+With more than ten thousand posts almost every difference is statistically significant, so the size of an effect matters more than its $p$-value. Differences between groups are reported as Hedges' $g$, the difference in means expressed in standard deviations; by common convention 0.2 is a small effect, 0.5 a medium one and 0.8 a large one \citep{cohen1988}. In this paper $g$ always compares one community with the other three together. $\varepsilon^2$ is the share of the variation between posts that is explained by which community they come from; .04 means 4\%. Odds ratios are explained in Section~\ref{sec:agentivity}, and their 95\% confidence intervals give the range of values compatible with the data. Because many tests were run, $p$-values were adjusted with the Benjamini-Hochberg procedure, which limits the expected share of false positives among the results called significant.
 
 \subsection{Ethics}
 
@@ -148,11 +168,15 @@ All posts were publicly available at the time of collection and were analysed in
 
 \subsection{Network structure separates the communities poorly}
 
+The first question was whether the overall shape of the who-does-what-to-whom maps differs between communities, regardless of which words fill them. It does, but only slightly: knowing the shape of a post's network helps very little in guessing where it was written.
+
 All nine network metrics differed across communities after correction, which is unsurprising with ten thousand posts, but the differences were small. The largest effect sizes were $\varepsilon^2 = .016$ for the first-person agent ratio and $.013$ for both the node type-token ratio and the largest strongly connected component; the others ranged from $.004$ to $.012$. In one-versus-rest contrasts, the largest effects were a higher first-person agent ratio in r/depression ($g = 0.31$), a lower node type-token ratio in r/OCD ($g = -0.24$) and a smaller strongly connected component in r/ADHD ($g = -0.24$). A classifier using the nine metrics identified the community of a post 33.6\% of the time, against a chance level of 25\% (macro-averaged AUC $= .60$). The way a post's network is shaped says something about where it was written, but not much.
 
 \subsection{Posts in r/OCD are the most thematically concentrated, posts in r/depression the least}
 
-Recurrence analysis set two communities apart from the others. With MiniLM and the 10\% threshold, recurrence rate was highest in r/OCD (mean .18; $g = 0.36$ against the other three communities) and lowest in r/depression (.12; $g = -0.39$), with r/ptsd (.14; $g = -0.08$) and r/ADHD (.16; $g = -0.01$) in between (Figure~\ref{fig:concentration}A). Laminarity (r/OCD $g = 0.31$, r/depression $g = -0.38$), determinism ($0.26$ and $-0.28$) and entropy ($0.22$ and $-0.27$) followed the same pattern. Recurrence rate explained 4.0\% of the variance between communities ($\varepsilon^2 = .040$), more than any network metric. The pattern held with thresholds giving 5\% and 15\% recurrence (r/OCD $g$ from 0.32 to 0.41, r/depression from $-0.43$ to $-0.35$) and with mpnet ($0.33$ and $-0.37$ at 10\%). Across all metrics, thresholds and communities, the effect sizes from the two models correlated at $r = .99$.
+This analysis asked how much a post keeps returning to the same content. Posts in r/OCD did so the most: their sentences were more often close in meaning to other sentences in the same post. Posts in r/depression did so the least and ranged over more subjects. Posts in r/ptsd and r/ADHD were in between.
+
+With MiniLM and the 10\% threshold, recurrence rate was highest in r/OCD (mean .18; $g = 0.36$ against the other three communities) and lowest in r/depression (.12; $g = -0.39$), with r/ptsd (.14; $g = -0.08$) and r/ADHD (.16; $g = -0.01$) in between (Figure~\ref{fig:concentration}A). Laminarity (r/OCD $g = 0.31$, r/depression $g = -0.38$), determinism ($0.26$ and $-0.28$) and entropy ($0.22$ and $-0.27$) followed the same pattern. Recurrence rate explained 4.0\% of the variance between communities ($\varepsilon^2 = .040$), more than any network metric. The pattern held with thresholds giving 5\% and 15\% recurrence (r/OCD $g$ from 0.32 to 0.41, r/depression from $-0.43$ to $-0.35$) and with mpnet ($0.33$ and $-0.37$ at 10\%). Across all metrics, thresholds and communities, the effect sizes from the two models correlated at $r = .99$.
 
 With the per-post threshold the differences disappeared (all $|g| \leq 0.10$, $\varepsilon^2 \leq .002$; Figure~\ref{fig:concentration}B). Posts in r/OCD do not return to a theme in longer or more regular runs than other posts; their sentences are closer to one another in meaning overall. We therefore describe the result as thematic concentration rather than recurrence in a dynamical sense. A classifier using the seven recurrence metrics reached 32.6\% accuracy (macro AUC $= .60$), so concentration, like network structure, separates the communities on average but not post by post.
 
@@ -164,6 +188,8 @@ With the per-post threshold the differences disappeared (all $|g| \leq 0.10$, $\
 \end{figure}
 
 \subsection{Network content separates them well, but roles add nothing to classification}
+
+Next we looked at which words fill the networks. Unlike their shape, their content differs sharply between communities, mostly because each community talks about different things: medication in r/ADHD, abuse in r/ptsd, intrusive thoughts and checking in r/OCD. Knowing whether a word appears as the doer or as the one done to, however, did not help a computer recognise the community any better than knowing that the word appears at all.
 
 The content of the networks was far more informative. Figure~\ref{fig:content} shows the head words most specific to each community in the Agent and Event roles. In r/OCD the most distinctive agents were \textit{thought}, \textit{fear}, \textit{obsession}, \textit{brain} and \textit{mind}, and the most distinctive events were \textit{obsess}, \textit{touch}, \textit{worry}, \textit{wash}, \textit{ruminate} and \textit{check}. In r/depression they were \textit{life}, \textit{family}, \textit{world}, \textit{nobody}, \textit{everyone}, \textit{nothing} and \textit{future} as agents, and \textit{care (anymore)}, \textit{die}, \textit{live}, \textit{wish} and \textit{hate} as events. In r/ptsd they were \textit{trauma}, \textit{he}, \textit{abuse}, \textit{man}, \textit{boyfriend}, \textit{father} and \textit{police}, and \textit{abuse}, \textit{trigger}, \textit{scream}, \textit{assault} and \textit{dissociate}. In r/ADHD they were \textit{medication}, \textit{doctor}, \textit{task}, \textit{work} and \textit{psychiatrist}, and \textit{focus}, \textit{diagnose}, \textit{prescribe}, \textit{study} and \textit{procrastinate}.
 
@@ -200,6 +226,8 @@ Raw words + TEA heads with roles & .850 & .968 \\
 
 \subsection{The same mentions, different roles}
 
+This is the central analysis. It does not ask how often the narrator, other people or thoughts are mentioned, but, once they are mentioned, whether they are the ones acting or the ones acted upon. The four communities turned out to distribute this role in clearly different ways.
+
 The agency analysis looks at the position an entity takes once it appears. Overall agentivity was almost identical in the four communities, between 45.4\% and 45.9\% of slots, so none of the differences below comes from one community simply using more agents.
 
 The narrator is the clearest case (Figure~\ref{fig:mention}). The self accounted for 28.7\% of slots in r/OCD, 28.6\% in r/ptsd and 28.6\% in r/ADHD, and somewhat more (31.3\%) in r/depression. The role it took varied a good deal more than its frequency. When the self appeared, it was the agent in 85.5\% of cases in r/OCD and 85.4\% in r/ADHD, but in 82.0\% in r/depression and 79.2\% in r/ptsd. Other people showed the mirror image. Person nouns (\textit{mom}, \textit{friend}, \textit{therapist}, \textit{boyfriend}) were mentioned most in r/ptsd and least in r/ADHD and r/OCD, and when they were mentioned they were agents in 38.6\% of cases in r/ptsd against 26.9\% in r/OCD. The pronoun \textit{they} followed the same pattern (69.8\% versus 59.5\%).
@@ -211,15 +239,15 @@ The narrator is the clearest case (Figure~\ref{fig:mention}). The self accounted
 \label{fig:mention}
 \end{figure}
 
-The interaction models put these differences on a common scale (Figure~\ref{fig:heatmap}; all odds ratios reported below are passive-corrected with errors clustered by author, and all are significant after Benjamini-Hochberg correction unless stated otherwise). They yield a profile for each community.
+The interaction models put these differences on a common scale, where an odds ratio above 1 means that an entity is the one acting more often than expected and below 1 less often (Figure~\ref{fig:heatmap}; all odds ratios reported below are passive-corrected with errors clustered by author, and all are significant after Benjamini-Hochberg correction unless stated otherwise). They yield a profile for each community.
 
-\paragraph{r/ptsd.} The self was much less agentive than expected (OR = 0.62, 95\% CI 0.59--0.64), and other people were much more agentive: person nouns OR = 1.44 (1.36--1.52), \textit{they} OR = 1.32 (1.22--1.42). For \textit{he/she} the odds ratio was 1.05 (1.00--1.11, $p_\mathrm{BH} = .08$); these pronouns are very often agents in every community, but they were mentioned more than twice as often in r/ptsd (6.8\% of slots against 2.9--4.3\% elsewhere). Cognition nouns (OR = 0.93), time (0.87), the body (0.75) and artifacts (0.89) were less agentive than elsewhere.
+\paragraph{r/ptsd.} Writers in r/ptsd more often describe themselves on the receiving end of what happens, and other people as the ones doing it. The self was much less agentive than expected (OR = 0.62, 95\% CI 0.59--0.64), and other people were much more agentive: person nouns OR = 1.44 (1.36--1.52), \textit{they} OR = 1.32 (1.22--1.42). For \textit{he/she} the odds ratio was 1.05 (1.00--1.11, $p_\mathrm{BH} = .08$); these pronouns are very often agents in every community, but they were mentioned more than twice as often in r/ptsd (6.8\% of slots against 2.9--4.3\% elsewhere). Cognition nouns (OR = 0.93), time (0.87), the body (0.75) and artifacts (0.89) were less agentive than elsewhere.
 
-\paragraph{r/OCD.} The profile was close to the reverse. The self was more agentive (OR = 1.30, 1.25--1.35), while person nouns (OR = 0.66, 0.63--0.71), \textit{they} (0.69) and \textit{he/she} (0.80) were less so. Cognition nouns such as \textit{thought}, \textit{mind} and \textit{memory} were both mentioned more often (5.3\% of slots against 3.3--4.3\%) and, when mentioned, more often agents (OR = 1.13, 1.08--1.19). Absolutist pronouns (0.89) and time (0.80) were less agentive.
+\paragraph{r/OCD.} The profile was close to the reverse: the writer is the one acting even more often than elsewhere, other people act less often, and thoughts act more often than in the other communities. The self was more agentive (OR = 1.30, 1.25--1.35), while person nouns (OR = 0.66, 0.63--0.71), \textit{they} (0.69) and \textit{he/she} (0.80) were less so. Cognition nouns such as \textit{thought}, \textit{mind} and \textit{memory} were both mentioned more often (5.3\% of slots against 3.3--4.3\%) and, when mentioned, more often agents (OR = 1.13, 1.08--1.19). Absolutist pronouns (0.89) and time (0.80) were less agentive.
 
-\paragraph{r/depression.} Time nouns (\textit{day}, \textit{year}, \textit{future}) were more agentive than in any other community (OR = 1.26, 1.16--1.38), as were absolutist pronouns (OR = 1.14, 1.05--1.23) and \textit{they} (1.14). The self was mentioned most often here but was slightly less agentive than average (OR = 0.94, 0.90--0.98). Artifacts (0.75) and the body (0.77) were rarely agents.
+\paragraph{r/depression.} Here what stands out is that broad, impersonal things take the active role: time, and words such as ``nothing'' or ``nobody''. Time nouns (\textit{day}, \textit{year}, \textit{future}) were more agentive than in any other community (OR = 1.26, 1.16--1.38), as were absolutist pronouns (OR = 1.14, 1.05--1.23) and \textit{they} (1.14). The self was mentioned most often here but was slightly less agentive than average (OR = 0.94, 0.90--0.98). Artifacts (0.75) and the body (0.77) were rarely agents.
 
-\paragraph{r/ADHD.} Artifacts, mostly medication, were more agentive than elsewhere (OR = 1.36, 1.27--1.46), and so was the body (OR = 1.48, 1.34--1.64). The self was as agentive as in r/OCD (OR = 1.32), and \textit{he/she} more agentive than expected (1.35). Person nouns and \textit{they} did not differ from the average.
+\paragraph{r/ADHD.} The writer acts often, and so do medication and the body. Artifacts, mostly medication, were more agentive than elsewhere (OR = 1.36, 1.27--1.46), and so was the body (OR = 1.48, 1.34--1.64). The self was as agentive as in r/OCD (OR = 1.32), and \textit{he/she} more agentive than expected (1.35). Person nouns and \textit{they} did not differ from the average.
 
 \begin{figure}[t]
 \centering
@@ -257,6 +285,8 @@ Figure~\ref{fig:networks} shows what two of these profiles look like in the data
 \end{figure}
 
 \subsection{Robustness}
+
+None of the checks changed the picture. The agency profiles were essentially the same when passive sentences were reclassified, when each author contributed only one post, and when the sample was split in two at random.
 
 \paragraph{Passive voice.} Agentless passives were rare: they made up 3.3\% (r/OCD) to 4.3\% (r/ptsd) of the self's subject slots, and the differences between communities were small ($|g| \leq 0.21$). Among agentless passives with the narrator as subject and a lexical verb, the most frequent was the same in every community: ``I was diagnosed'', which appeared in 19.5\% of r/ADHD posts and in 5.6--11.9\% of the others. Passives of abuse, rape and triggering were characteristic of r/ptsd but each occurred in only 2--3\% of its posts. The correction therefore changed little. The odds ratio for the self in r/ptsd went from 0.59 to 0.62, the one for person nouns stayed at 1.44, and the one for the self in r/ADHD, where ``I was diagnosed'' is most common, went from 1.43 to 1.32. The reduced agency of the narrator in r/ptsd is not a by-product of passive constructions. It comes from active clauses in which other people are the subject and the narrator is the object.
 
@@ -312,7 +342,11 @@ Three extensions follow directly. The first is to replicate the profiles in data
 % =====================================================================
 \section{Conclusion}
 
-Grammatical roles did not help to tell four mental health communities apart, but they did show who acts in their stories. The sharpest contrast was between r/ptsd, where narrators mention themselves as often as anywhere else but are more often the ones acted upon, and r/OCD, where the narrator acts and so do the narrator's thoughts. Posts in r/OCD were also the most thematically concentrated and posts in r/depression the least. Whether these profiles belong to the conditions or to the ways each community has learned to tell its stories is a question the present data leave open.
+We asked who acts in the stories people tell in four online mental health communities, using a method that records, for every sentence, who does what to whom. Grammatical roles did not help to tell the communities apart, which plain word counts already do well. They did show something word counts cannot: how each community distributes the role of the one who acts.
+
+In r/ptsd, writers mention themselves as often as anywhere else but are more often the ones acted upon, and other people, often named by their relationship to the writer, are more often the ones acting. In r/OCD the writer is the one acting even more often than elsewhere, other people act less often, and thoughts act more often than in any other community; these posts also stay closest to a single theme. In r/depression, time and sweeping words such as ``nothing'' and ``nobody'' take the active role, and the posts range over more subjects than in any other community. In r/ADHD, the writer acts often alongside medication and the body. The PTSD and OCD patterns resemble what cognitive models of these conditions would predict: the loss of autonomy described in PTSD, and the inflated responsibility and powerful thoughts described in OCD.
+
+For psychologists, the method offers a way to measure narrated agency, a construct usually coded by hand, across thousands of texts and separately for the self, other people and abstract forces. The effects are moderate and the data come from online communities rather than clinical samples, so the profiles describe how these communities write rather than how people with each diagnosis think. Whether they belong to the conditions or to the ways each community has learned to tell its stories is a question the present data leave open.
 
 % =====================================================================
 \section*{Data and code availability}
