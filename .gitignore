@@ -16,10 +16,16 @@ __pycache__/
 results/networks/
 control_*/results/networks/
 
+# Reddit usernames are not shared (posts are referenced by id only)
+study2_reddit/metadata_authors.csv
+
+# Run logs
+*.log
+
 # OS files
 .DS_Store
 Thumbs.db
 
 # Figures source directory (large PNGs, reproducible)
 # Keep arxiv/figures/ (compressed for submission)
-figures/
+/figures/

@@ -1,0 +1,4 @@
+A,B,acc_A,acc_B,A_right_B_wrong,B_right_A_wrong,p_mcnemar
+TEA heads + roles,"TEA heads, no roles",0.8168900804289544,0.8206434316353888,184,212,0.17476828372779646
+raw words + TEA roles,raw words (full post),0.8497319034852547,0.8481233243967828,88,76,0.39043016796270563
+TEA heads + roles,raw words (full post),0.8168900804289544,0.8481233243967828,250,483,5.506362217296071e-18

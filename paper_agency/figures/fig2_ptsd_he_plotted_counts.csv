@@ -1,0 +1,13 @@
+event,target,n_posts
+tell,i,212
+say,i,72
+give,i,66
+ask,i,65
+call,i,48
+take,i,45
+talk,i,37
+say,he,34
+love,i,33
+hit,i,32
+leave,i,31
+hurt,i,31

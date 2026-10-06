@@ -1,0 +1,18 @@
+Node 1,TEA,Node 2,TEA2,Hypergraph,Semantic-Syntactic,svo_id,passive_approx,is_passive
+he,Agent,yell again,Event,"[[('he', [])], ['yell again'], [('at i', [])]]",0,0,0,0
+yell again,Event,at i,Target,"[[('he', [])], ['yell again'], [('at i', [])]]",0,0,0,0
+i,Agent,assault last year,Event,"[[('i', [])], ['assault last year'], [('last year', [])]]",0,1,1,1
+assault last year,Event,last year,Target,"[[('i', [])], ['assault last year'], [('last year', [])]]",0,1,0,1
+my thought,Agent,tell,Event,"[[('my thought', [])], ['tell'], [('i', []), ('dangerous', [])]]",0,2,0,0
+tell,Event,i,Target,"[[('my thought', [])], ['tell'], [('i', []), ('dangerous', [])]]",0,2,0,0
+tell,Event,dangerous,Target,"[[('my thought', [])], ['tell'], [('i', []), ('dangerous', [])]]",0,2,0,0
+i,Target,dangerous,Target,"[[('my thought', [])], ['tell'], [('i', []), ('dangerous', [])]]",0,2,0,0
+i,Agent,be,Event,"[[('i', [])], ['be'], [('dangerous', [])]]",0,3,0,0
+be,Event,dangerous,Target,"[[('i', [])], ['be'], [('dangerous', [])]]",0,3,0,0
+i,Agent,check every night,Event,"[[('i', [])], ['check every night'], [('lock', []), ('every night', [])]]",0,4,0,0
+check every night,Event,lock,Target,"[[('i', [])], ['check every night'], [('lock', []), ('every night', [])]]",0,4,0,0
+check every night,Event,every night,Target,"[[('i', [])], ['check every night'], [('lock', []), ('every night', [])]]",0,4,0,0
+lock,Target,every night,Target,"[[('i', [])], ['check every night'], [('lock', []), ('every night', [])]]",0,4,0,0
+nothing,Agent,help anymore,Event,"[[('nothing', [])], ['help anymore'], []]",0,5,0,0
+medication,Agent,help,Event,"[[('medication', [])], ['help'], [('my focus', [])]]",0,6,0,0
+help,Event,my focus,Target,"[[('medication', [])], ['help'], [('my focus', [])]]",0,6,0,0
