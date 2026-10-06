@@ -287,10 +287,55 @@ def fig_content(k=10):
     plt.close(fig)
 
 
+# ------------------------------------------ Fig 7: thematic concentration
+def fig_concentration():
+    r = pd.read_csv(os.path.join(RES, "..", "rqa_st", "rqa_st_profile.csv"))
+    order = GROUPS[::-1]
+    y = np.arange(len(order))
+    second = "#eb6834"
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 3.2), sharey=True)
+
+    ax = axes[0]
+    for emb, color, dy, fill in (("minilm", SERIES, 0.12, True), ("mpnet", second, -0.12, False)):
+        s = r[(r.embedding == emb) & (r.metric == "RR")]
+        g10 = s[s.scheme == "global10"].iloc[0]
+        rng_ = s[s.scheme.str.startswith("global")]
+        lo = [rng_[f"g_{k}"].min() for k in order]
+        hi = [rng_[f"g_{k}"].max() for k in order]
+        mid = [g10[f"g_{k}"] for k in order]
+        ax.hlines(y + dy, lo, hi, color=color, linewidth=2)
+        ax.scatter(mid, y + dy, s=34, color=color if fill else "white", edgecolor=color, linewidth=1.5, zorder=3,
+                   label={"minilm": "all-MiniLM-L6-v2", "mpnet": "all-mpnet-base-v2"}[emb])
+    ax.set_title("A  Recurrence rate, global threshold", fontsize=9, loc="left", color=INK)
+    ax.legend(frameon=False, fontsize=7.5, loc="upper left")
+
+    ax = axes[1]
+    s = r[(r.embedding == "minilm") & (r.metric == "LAM")]
+    for scheme, color, dy, lab in (("global10", SERIES, 0.12, "global threshold (RR 10%)"),
+                                   ("pertext10", MUTED, -0.12, "per-post threshold (RR 10%)")):
+        row = s[s.scheme == scheme].iloc[0]
+        ax.scatter([row[f"g_{k}"] for k in order], y + dy, s=34, color=color, edgecolor="white",
+                   linewidth=1.5, zorder=3, label=lab)
+    ax.set_title("B  Laminarity, MiniLM", fontsize=9, loc="left", color=INK)
+    ax.legend(frameon=False, fontsize=7.5, loc="upper left")
+
+    for ax in axes:
+        ax.axvline(0, color=AXIS, linewidth=0.8)
+        ax.set_xlim(-0.55, 0.55)
+        ax.set_yticks(y, [NAMES[k] for k in order])
+        ax.set_ylim(-0.6, len(order) + 0.35)
+        ax.set_xlabel("Hedges' g (community vs. other three)", fontsize=8)
+        hgrid(ax)
+    fig.tight_layout()
+    fig.savefig(os.path.join(FIG, "fig7_thematic_concentration.png"))
+    plt.close(fig)
+
+
 if __name__ == "__main__":
-    which = sys.argv[1:] or ["example", "real", "mention", "heatmap", "map", "content"]
+    which = sys.argv[1:] or ["example", "real", "mention", "heatmap", "map", "content", "concentration"]
     funcs = {"example": fig_example, "real": fig_real_networks_all, "mention": fig_mention_agentivity,
-             "heatmap": fig_heatmap, "map": fig_agency_map, "content": fig_content}
+             "heatmap": fig_heatmap, "map": fig_agency_map, "content": fig_content,
+             "concentration": fig_concentration}
     for w in which:
         print(f"-- {w}", flush=True)
         funcs[w]()

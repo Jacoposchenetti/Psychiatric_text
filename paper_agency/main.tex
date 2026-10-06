@@ -34,7 +34,7 @@ Jacopo Schenetti\\
 
 % =====================================================================
 \begin{abstract}
-Language-based markers of mental health usually count words: how often people say ``I'', how often they use absolutist terms, which topics they raise. Counts say little about who does what to whom in the stories people tell. We used Target-Event-Agent (TEA) networks, which recover agents, actions and targets from dependency parses, to compare 10,713 posts written in four Reddit communities: r/OCD ($n = 3{,}058$), r/depression ($n = 1{,}865$), r/ptsd ($n = 2{,}485$) and r/ADHD ($n = 3{,}305$). First, the structure of the networks barely separated the communities: no structural or recurrence metric explained more than 1.7\% of the variance, and a classifier built on them reached 34.5\% accuracy against a 25\% baseline. Second, the content of the networks separated them well (81.7\% accuracy), but plain word counts did slightly better (84.8\%), and adding role labels gave no gain. Third, roles did matter for a different question. We coded 2.0 million agent and target slots with pronoun classes and WordNet supersenses and asked, for words that are mentioned, how often they are cast as the agent. Posters in all four communities mentioned themselves at similar rates, but r/ptsd posters placed themselves in the agent role much less often (odds ratio 0.62, 95\% CI 0.59--0.64) and placed other people there much more often (OR = 1.44, 1.36--1.52). r/OCD showed the reverse: a more agentive self (OR = 1.30) and fewer agentive others (OR = 0.66), together with mental contents such as thoughts acting as agents (OR = 1.13). r/depression cast time and absolutist pronouns (``nothing'', ``everyone'') as agents; r/ADHD cast medication and the body. These profiles held after correcting agentless passives, clustering errors by author, keeping one post per author, and splitting the sample in half. TEA networks added nothing to classification. Their use is descriptive: they show how each community distributes agency, which word counts miss.
+Language-based markers of mental health usually count words: how often people say ``I'', how often they use absolutist terms, which topics they raise. Counts say little about who does what to whom in the stories people tell. We used Target-Event-Agent (TEA) networks, which recover agents, actions and targets from dependency parses, to compare 10,713 posts written in four Reddit communities: r/OCD ($n = 3{,}058$), r/depression ($n = 1{,}865$), r/ptsd ($n = 2{,}485$) and r/ADHD ($n = 3{,}305$). First, the structure of the networks barely separated the communities: no structural metric explained more than 1.7\% of the variance, and a classifier built on them reached 33.6\% accuracy against a 25\% baseline. Recurrence analysis of sentence-transformer embeddings found r/OCD posts to be the most thematically concentrated and r/depression posts the least ($g = 0.36$ and $-0.39$ for recurrence rate), across two embedding models and three thresholds; the difference lay in how similar a post's sentences were overall, not in the order in which themes returned. Second, the content of the networks separated them well (81.7\% accuracy), but plain word counts did slightly better (84.8\%), and adding role labels gave no gain. Third, roles did matter for a different question. We coded 2.0 million agent and target slots with pronoun classes and WordNet supersenses and asked, for words that are mentioned, how often they are cast as the agent. Posters in all four communities mentioned themselves at similar rates, but r/ptsd posters placed themselves in the agent role much less often (odds ratio 0.62, 95\% CI 0.59--0.64) and placed other people there much more often (OR = 1.44, 1.36--1.52). r/OCD showed the reverse: a more agentive self (OR = 1.30) and fewer agentive others (OR = 0.66), together with mental contents such as thoughts acting as agents (OR = 1.13). r/depression cast time and absolutist pronouns (``nothing'', ``everyone'') as agents; r/ADHD cast medication and the body. These profiles held after correcting agentless passives, clustering errors by author, keeping one post per author, and splitting the sample in half. TEA networks added nothing to classification. Their use is descriptive: they show how each community distributes agency, which word counts miss.
 
 \medskip\noindent\textbf{Keywords:} agency, narrative, TEA networks, semantic roles, Reddit, OCD, PTSD, depression, ADHD, computational psychiatry
 \end{abstract}
@@ -67,7 +67,7 @@ Word counts cannot address the third question, and it gave the clearest results.
 
 \subsection{Data}
 
-Posts came from a public collection of Reddit mental health posts hosted on Hugging Face \citep{solomonk_dataset}, which contains submissions to r/OCD, r/depression, r/ptsd, r/ADHD and r/aspergers. We used the first four. For each post we removed URLs, Markdown, HTML entities, edit notes and ``tl;dr'' lines, and prepended the title to the body. We discarded removed or deleted posts and exact duplicates, kept posts with at least 300 words after cleaning, and excluded 200 posts that had been used in an earlier pilot analysis. All 10,890 eligible posts were analysed rather than a sample. Of these, 10,713 had both a TEA network and at least ten sentences for the recurrence analysis and form the analytic sample (Table~\ref{tab:data}).
+Posts came from a public collection of Reddit mental health posts hosted on Hugging Face \citep{solomonk_dataset}, which contains submissions to r/OCD, r/depression, r/ptsd, r/ADHD and r/aspergers. We used the first four. For each post we removed URLs, Markdown, HTML entities, edit notes and ``tl;dr'' lines, and prepended the title to the body. We discarded removed or deleted posts and exact duplicates, kept posts with at least 300 words after cleaning, and excluded 200 posts that had been used in an earlier pilot analysis. All 10,890 eligible posts were analysed rather than a sample. Of these, 10,713 had a TEA network and at least ten sentences and form the analytic sample (Table~\ref{tab:data}).
 
 Posts were written between July 2019 and December 2021, with most of them in 2021. They came from 8,921 identifiable authors; 432 posts were by authors whose accounts had since been deleted. Of the identifiable authors, 814 wrote more than one post and 65 wrote in more than one of the four communities. We return to this non-independence in Section~\ref{sec:robust}.
 
@@ -103,17 +103,21 @@ For the analyses of content and agency we reduced every node to its head word, t
 \label{fig:example}
 \end{figure}
 
-\subsection{Structural and recurrence metrics}
+\subsection{Network structure}
 
-To answer the first question we computed nine structural metrics on each TEA network (first-person agent ratio, size of the largest strongly connected component, triplets per word, density, average clustering, node type-token ratio, share of repeated edges, mean edge weight, unique nodes per word) and seven recurrence quantification measures on each post. For recurrence analysis, each sentence of at least three words was represented by its averaged 300-dimensional spaCy vector; pairs of sentences with cosine similarity of at least 0.923 counted as recurrent, a threshold fixed in advance on a separate pilot sample of personal narratives to give a recurrence rate near 10\%. From the recurrence matrix we derived recurrence rate, determinism, laminarity, trapping time, mean and maximum diagonal line length, and the entropy of diagonal line lengths.
+To answer the first question we computed nine structural metrics on each TEA network: first-person agent ratio, size of the largest strongly connected component, triplets per word, density, average clustering, node type-token ratio, share of repeated edges, mean edge weight and unique nodes per word. Because these metrics depend on text length, each was regressed on log word count across the full sample and the residuals were analysed. We compared the four communities with Kruskal-Wallis tests, reported $\varepsilon^2$ as the effect size, and contrasted each community with the other three using Hedges' $g$ \citep{hedges1981}.
 
-Because these metrics depend on text length, each was regressed on log word count across the full sample and the residuals were analysed. We compared the four communities with Kruskal-Wallis tests, reported $\varepsilon^2$ as the effect size, and contrasted each community with the other three using Hedges' $g$ \citep{hedges1981}.
+\subsection{Thematic concentration}\label{sec:rqa}
+
+To measure how far a post keeps returning to the same content, we applied recurrence quantification analysis to the sequence of its sentences \citep{marwan2007}. Sentences were segmented with spaCy's statistical sentence segmenter, and sentences shorter than three words were dropped; 10,340 posts kept at least ten sentences (median 22). Each sentence was embedded with the sentence-transformer all-MiniLM-L6-v2 \citep{reimers2019}, and the whole analysis was repeated with all-mpnet-base-v2 as a check. We chose models trained for semantic similarity over averaged word vectors, whose similarities are driven largely by function words and pronouns and therefore track style as much as content.
+
+Two sentences counted as recurrent when the cosine similarity of their embeddings exceeded a threshold. In the main analysis the threshold was global, set so that the recurrence rate pooled over 500 random posts was 10\% (0.384 for MiniLM, 0.400 for mpnet), and we repeated it with thresholds giving 5\% and 15\%. From each recurrence matrix we derived the recurrence rate, determinism, laminarity, trapping time, mean and maximum diagonal line length, and the entropy of diagonal line lengths. With a global threshold the recurrence rate varies between posts, and the other measures partly follow it. We therefore also used a per-post threshold that fixed each post's recurrence rate at 10\%. This separates the sequential structure of recurrence, whether similar sentences come in runs, from how similar a post's sentences are overall. Metrics were regressed on the log number of sentences and analysed with the same tests as the network metrics, with the false discovery rate controlled across all recurrence tests.
 
 \subsection{Content signatures and classification}
 
 To describe what distinguishes the communities, we counted for each community the number of posts in which a head word appeared in a given role and compared these counts with the other three communities using weighted log-odds ratios with an informative Dirichlet prior \citep{monroe2008}. Counting posts rather than tokens prevents a single long post from dominating a term. Only words occurring in at least 30 posts were considered.
 
-To test whether roles add information, we trained multinomial logistic regression classifiers on TF-IDF features under five-fold stratified cross-validation, using a balanced subsample of 1,865 posts per community (the size of the smallest community) and the same folds for every feature set. The feature sets were: the raw words of the post; TEA head words without role labels; the same head words labelled by role (e.g. \texttt{A\_thought} versus \texttt{T\_thought}); each role on its own; and raw words plus role-labelled heads. Paired predictions were compared with exact McNemar tests. A further classifier used the 16 residualised structural metrics.
+To test whether roles add information, we trained multinomial logistic regression classifiers on TF-IDF features under five-fold stratified cross-validation, using a balanced subsample of 1,865 posts per community (the size of the smallest community) and the same folds for every feature set. The feature sets were: the raw words of the post; TEA head words without role labels; the same head words labelled by role (e.g. \texttt{A\_thought} versus \texttt{T\_thought}); each role on its own; and raw words plus role-labelled heads. Paired predictions were compared with exact McNemar tests. Two further classifiers used the nine residualised network metrics and the seven recurrence metrics of Section~\ref{sec:rqa} with the log number of sentences.
 
 \subsection{Coding agency}
 
@@ -144,7 +148,20 @@ All posts were publicly available at the time of collection and were analysed in
 
 \subsection{Network structure separates the communities poorly}
 
-All 16 structural and recurrence metrics differed across communities after correction, which is unsurprising with ten thousand posts, but the differences were small. The largest effect sizes were $\varepsilon^2 = .016$ for the first-person agent ratio, $.014$ for recurrence rate and $.013$ for both the node type-token ratio and the largest strongly connected component; the others ranged from $.004$ to $.012$. In one-versus-rest contrasts, the largest effects were a higher first-person agent ratio in r/depression ($g = 0.31$), lower thematic recurrence in r/ptsd (recurrence rate $g = -0.26$, laminarity $g = -0.25$), a lower node type-token ratio in r/OCD ($g = -0.24$) and a smaller strongly connected component in r/ADHD ($g = -0.24$). A classifier using all 16 metrics identified the community of a post 34.5\% of the time, against a chance level of 25\% (macro-averaged AUC $= .61$). The way a post's network is shaped says something about where it was written, but not much.
+All nine network metrics differed across communities after correction, which is unsurprising with ten thousand posts, but the differences were small. The largest effect sizes were $\varepsilon^2 = .016$ for the first-person agent ratio and $.013$ for both the node type-token ratio and the largest strongly connected component; the others ranged from $.004$ to $.012$. In one-versus-rest contrasts, the largest effects were a higher first-person agent ratio in r/depression ($g = 0.31$), a lower node type-token ratio in r/OCD ($g = -0.24$) and a smaller strongly connected component in r/ADHD ($g = -0.24$). A classifier using the nine metrics identified the community of a post 33.6\% of the time, against a chance level of 25\% (macro-averaged AUC $= .60$). The way a post's network is shaped says something about where it was written, but not much.
+
+\subsection{Posts in r/OCD are the most thematically concentrated, posts in r/depression the least}
+
+Recurrence analysis set two communities apart from the others. With MiniLM and the 10\% threshold, recurrence rate was highest in r/OCD (mean .18; $g = 0.36$ against the other three communities) and lowest in r/depression (.12; $g = -0.39$), with r/ptsd (.14; $g = -0.08$) and r/ADHD (.16; $g = -0.01$) in between (Figure~\ref{fig:concentration}A). Laminarity (r/OCD $g = 0.31$, r/depression $g = -0.38$), determinism ($0.26$ and $-0.28$) and entropy ($0.22$ and $-0.27$) followed the same pattern. Recurrence rate explained 4.0\% of the variance between communities ($\varepsilon^2 = .040$), more than any network metric. The pattern held with thresholds giving 5\% and 15\% recurrence (r/OCD $g$ from 0.32 to 0.41, r/depression from $-0.43$ to $-0.35$) and with mpnet ($0.33$ and $-0.37$ at 10\%). Across all metrics, thresholds and communities, the effect sizes from the two models correlated at $r = .99$.
+
+With the per-post threshold the differences disappeared (all $|g| \leq 0.10$, $\varepsilon^2 \leq .002$; Figure~\ref{fig:concentration}B). Posts in r/OCD do not return to a theme in longer or more regular runs than other posts; their sentences are closer to one another in meaning overall. We therefore describe the result as thematic concentration rather than recurrence in a dynamical sense. A classifier using the seven recurrence metrics reached 32.6\% accuracy (macro AUC $= .60$), so concentration, like network structure, separates the communities on average but not post by post.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig7_thematic_concentration.png}
+\caption{Thematic concentration. Effect sizes (Hedges' $g$) for each community against the other three, after adjusting for the number of sentences. (A) Recurrence rate with a global threshold set to a pooled recurrence rate of 10\%, for two sentence-transformer models; bars span the results for thresholds giving 5\% and 15\%. (B) Laminarity with the global threshold and with a per-post threshold that fixes each post's recurrence rate at 10\%; once overall similarity is held constant, the communities no longer differ.}
+\label{fig:concentration}
+\end{figure}
 
 \subsection{Network content separates them well, but roles add nothing to classification}
 
@@ -161,14 +178,15 @@ A classifier using role-labelled head words reached 81.7\% accuracy (macro AUC $
 
 \begin{table}[t]
 \centering
-\caption{Classification of posts into the four communities. Balanced subsample of 1,865 posts per community, five-fold cross-validation with the same folds for every feature set. Chance accuracy is 25\%.}
+\caption{Classification of posts into the four communities. Balanced subsample of 1,865 posts per community, five-fold cross-validation with the same folds for every feature set. Chance accuracy is 25\%. $^a$Balanced subsample of the 10,340 posts with recurrence data.}
 \label{tab:ablation}
 \small
 \begin{tabular}{@{}lcc@{}}
 \toprule
 Features & Accuracy & Macro AUC \\
 \midrule
-16 structural and recurrence metrics & .345 & .610 \\
+9 network-structure metrics & .336 & .604 \\
+7 recurrence metrics (MiniLM)$^a$ & .326 & .603 \\
 Raw words of the post & .848 & .968 \\
 TEA head words, no roles & .821 & .957 \\
 TEA head words with roles & .817 & .954 \\
@@ -263,6 +281,10 @@ The r/depression profile is less about persons and more about scope. Absolutist 
 
 The r/ADHD profile reflects how the condition is discussed online as much as the condition itself. Medication and the body act on the narrator more often than in the other communities, and ``I was diagnosed'' is by far the most common agentless passive. The self is nonetheless as agentive as in r/OCD. One reading, consistent with accounts of ADHD as a problem of self-regulation \citep{barkley1997}, is that posters describe their own efforts (to focus, start, finish, study) alongside an external regulator, the medication, that helps or fails to help them do so.
 
+\subsection{Thematic concentration}
+
+The recurrence analysis gives a second, independent description of two of the communities. Posts in r/OCD were the most concentrated: their sentences stayed close to one another in meaning, as one would expect when an obsession takes over most of what a person writes about. Posts in r/depression were the least concentrated and moved between many subjects; in the content and agency analyses the same community favoured broad entities such as \textit{life}, \textit{world}, \textit{everything} and \textit{the future}, so the two results describe the same diffuseness from different angles. Rumination is often described as repetitive \citep{nolenhoeksema2000}, and one might have expected r/depression to be the most recurrent community. In these posts the repetition, if present, did not take the form of sentences with similar content. The effect concerned how homogeneous a post was, not how its themes returned over time: once each post's recurrence rate was fixed, the sequential measures did not differ.
+
 \subsection{What roles add}
 
 Role labels did not improve classification. It would be easy to present TEA networks as a better feature set for detecting conditions from text; on these data they are not. Raw words were slightly better, and a large part of what separates the communities is topical.
@@ -279,6 +301,8 @@ Agency is approximated by grammar. The subject of an active verb is usually, but
 
 The category system has its own noise. WordNet supersenses were assigned from the most frequent sense, which misfiles some words (``med'' as communication, ``thing'' as state). The taxonomy was chosen in advance and applied identically to all communities, so this noise should weaken differences rather than create them, but finer categories would sharpen the picture.
 
+The recurrence results depend on how sentences are represented. Two sentence-transformer models and three thresholds gave the same pattern, but both models were trained on general-purpose text, and the 373 posts with fewer than ten sentences after segmentation could not be analysed.
+
 Finally, effects are moderate. The odds ratios range from about 0.6 to 1.5, and the structural differences are small. With ten thousand posts even small differences are estimated precisely; we have therefore emphasised effects that are both large enough to matter and stable across halves of the data, rather than statistical significance alone.
 
 \subsection{Future directions}
@@ -288,7 +312,7 @@ Three extensions follow directly. The first is to replicate the profiles in data
 % =====================================================================
 \section{Conclusion}
 
-Grammatical roles did not help to tell four mental health communities apart, but they did show who acts in their stories. The sharpest contrast was between r/ptsd, where narrators mention themselves as often as anywhere else but are more often the ones acted upon, and r/OCD, where the narrator acts and so do the narrator's thoughts. Whether these profiles belong to the conditions or to the ways each community has learned to tell its stories is a question the present data leave open.
+Grammatical roles did not help to tell four mental health communities apart, but they did show who acts in their stories. The sharpest contrast was between r/ptsd, where narrators mention themselves as often as anywhere else but are more often the ones acted upon, and r/OCD, where the narrator acts and so do the narrator's thoughts. Posts in r/OCD were also the most thematically concentrated and posts in r/depression the least. Whether these profiles belong to the conditions or to the ways each community has learned to tell its stories is a question the present data leave open.
 
 % =====================================================================
 \section*{Data and code availability}

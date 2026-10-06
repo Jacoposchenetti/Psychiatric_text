@@ -19,6 +19,10 @@ control_*/results/networks/
 # Reddit usernames are not shared (posts are referenced by id only)
 study2_reddit/metadata_authors.csv
 
+# Sentence texts and embeddings (contain post text; reproducible from scripts)
+study2_reddit/rqa_st/sentences.json
+study2_reddit/rqa_st/*.npy
+
 # Run logs
 *.log
 

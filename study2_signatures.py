@@ -1,7 +1,7 @@
 """
 Study 2 — disorder signatures on Reddit (r/OCD, r/depression, r/ptsd, r/ADHD).
 
-1. Structural profile: 16 TEA+RQA metrics, residualised on log word count,
+1. Structural profile: 9 TEA network metrics, residualised on log word count,
    Kruskal-Wallis + epsilon^2, one-vs-rest Hedges' g, BH-corrected.
 2. Discriminability: multinomial logistic regression, 5-fold CV, balanced
    classes; structural metrics vs TEA content (node heads).
@@ -24,13 +24,14 @@ from sklearn.model_selection import StratifiedKFold, cross_val_predict
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from study2_reddit import load_merged_study2, bh_adjust, hedges_g, TEA_METRICS, RQA_METRICS, RES, GRAPHS
+from study2_reddit import load_merged_study2, bh_adjust, hedges_g, TEA_METRICS, RES, GRAPHS
 
 OUT = os.path.join(RES, "signatures")
 os.makedirs(OUT, exist_ok=True)
 GROUPS = ["OCD", "depression", "ptsd", "ADHD"]
 SEED = 42
-METRICS = TEA_METRICS + RQA_METRICS
+# network structure only; thematic recurrence is analysed separately in study2_rqa_st.py
+METRICS = TEA_METRICS
 
 # disorder labels would trivially identify the subreddit
 LABEL_WORDS = {"ocd", "adhd", "ptsd", "cptsd", "c-ptsd", "depression"}
@@ -51,8 +52,7 @@ def structural_profile(df):
         H, p_kw = stats.kruskal(*samples)
         n, k = len(r), len(GROUPS)
         eps2 = (H - k + 1) / (n - k)
-        row = {"method": "TEA" if (col, label) in TEA_METRICS else "RQA",
-               "metric": label, "H": H, "p_kw": p_kw, "epsilon2": eps2}
+        row = {"metric": label, "H": H, "p_kw": p_kw, "epsilon2": eps2}
         for g in GROUPS:
             mask = (df["subreddit"] == g).to_numpy()
             row[f"g_{g}"] = hedges_g(r[mask], r[~mask])
@@ -162,7 +162,7 @@ def discriminability(df, resid, docs):
 
     X_struct = resid.loc[bal["_idx"], [c for c, _ in METRICS]].to_numpy()
     m_struct = make_pipeline(StandardScaler(), LogisticRegression(max_iter=2000))
-    r1, cm1 = evaluate(X_struct, y, m_struct, "structural (16 TEA+RQA metrics)")
+    r1, cm1 = evaluate(X_struct, y, m_struct, "structural (9 TEA network metrics)")
 
     def doc_string(slug):
         t = docs[slug]
@@ -184,7 +184,7 @@ def main():
     prof, resid = structural_profile(df)
     prof.to_csv(os.path.join(OUT, "structural_profile.csv"), index=False)
     pd.set_option("display.width", 220)
-    show = prof[["method", "metric", "epsilon2", "p_kw_bh"] + [f"g_{g}" for g in GROUPS]].copy()
+    show = prof[["metric", "epsilon2", "p_kw_bh"] + [f"g_{g}" for g in GROUPS]].copy()
     print("=== Structural profile (residualised on log length; g = group vs other three) ===")
     print(show.round(3).to_string(index=False))
 
